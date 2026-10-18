@@ -6,8 +6,8 @@
 
 ## 能力边界
 
-- Worker 进程入口在 `src/worker.ts`。
-- `src/process.ts` 负责 BullMQ Worker 装配、event wiring、shutdown，并委派到 `runAgent`。
+- Worker 进程入口在 `src/bootstrap/worker.ts`，环境变量解析在 `src/bootstrap/env.ts`。
+- `src/modules/agent-jobs/consumer.ts` 保留 `createAgentWorkerProcess` interface，负责 BullMQ Worker 装配、event wiring、shutdown，并委派到 `runAgent`；对应底层检查在 `consumer.test.ts`，不另抽 queue package。
 - Worker 并发由 `WORKER_CONCURRENCY` 控制（正整数，默认 1），按副本独立扩容。
 - 队列名、任务名和 payload schema 来自 `@agent-template/shared`。
 - Agent run 公共入口来自 `@agent-template/agent`。
@@ -23,7 +23,7 @@
 
 - 不暴露 HTTP API。
 - 不直接定义共享任务 payload schema。
-- 不把不可测试的逻辑全部写在 `worker.ts`；进程装配和 job 处理要分开。
+- 不把不可测试的逻辑全部写在 `src/bootstrap/worker.ts`；进程入口与 consumer module 分开。
 - 不把 BullMQ event name 泄漏到 runtime 测试；测试通过回调 interface 验证 completed/failed 行为。
 - Worker process 直接委派给 `@agent-template/agent` 的 `runAgent` Agent run execution seam。
 - 不直接依赖 `@agent-template/agent-eve`；通过 `@agent-template/agent` 的 `runAgent` 调用 Eve。

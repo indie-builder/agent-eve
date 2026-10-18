@@ -3,11 +3,14 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "build": "tsdown src/generate-toolbox-business-skills.ts --format esm --no-dts",
+    "build": "tsdown src/skills/generate.ts --root src --format esm --no-dts",
     "lint": "oxlint --deny-warnings src",
-    "skills:generate": "tsx src/generate-toolbox-business-skills.ts",
+    "skills:generate": "tsx src/skills/generate.ts",
     "test": "vitest run",
     "typecheck": "tsc -p tsconfig.json --noEmit"
+  },
+  "tsdown": {
+    "fixedExtension": false
   },
   "devDependencies": {
     "@toolbox-sdk/server": ">=1.14.0",

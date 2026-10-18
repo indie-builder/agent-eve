@@ -176,6 +176,12 @@ importers:
 
   .:
     devDependencies:
+      '@agent-template/agent':
+        specifier: workspace:*
+        version: link:packages/agent
+      '@agent-template/shared':
+        specifier: workspace:*
+        version: link:packages/shared
       '@e2e-dev/web':
         specifier: '>=0.15.2'
         version: 0.15.2(e2e@0.21.2(@ai-sdk/anthropic@4.0.82(zod@4.6.7))(ai@7.0.143(zod@4.6.7)))

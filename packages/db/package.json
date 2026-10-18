@@ -3,15 +3,15 @@
   "private": true,
   "type": "module",
   "exports": {
-    ".": "./src/index.ts",
-    "./config": "./src/config.ts"
+    ".": "./src/postgres/client.ts",
+    "./config": "./src/postgres/config.ts"
   },
   "scripts": {
     "build": "tsc -p tsconfig.json",
     "db:generate": "prisma generate --schema prisma/schema.prisma",
     "db:migrate": "prisma migrate dev --schema prisma/schema.prisma --name init",
     "db:seed": "prisma db seed --schema prisma/schema.prisma",
-    "lint": "oxlint --deny-warnings src prisma.config.ts prisma/seed.ts",
+    "lint": "oxlint --deny-warnings src prisma.config.ts prisma",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "test": "vitest run"
   },

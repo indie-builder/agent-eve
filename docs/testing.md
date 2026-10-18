@@ -44,6 +44,8 @@ Web 自动在 `localhost:13020` 启动，fixtures 按测试监听 `127.0.0.1:140
 
 默认结果在 `.e2e/report.json`，失败trace/截图在 `.e2e/results/`，启动日志在 `.e2e/logs/web.log`，全部忽略提交。e2e不经过Turbo缓存。
 
+源码按 [后端module与目录分层](backend-architecture.md)组织。契约检查跟随所属module，根e2e fixtures通过各package的公开exports调用共享能力，直接装配应用bootstrap；目录调整不增加平行测试入口。
+
 ## 精简结果与必要例外
 
 原有25个Vitest文件、89个展开用例，收敛为**13个文件、54个用例**。移除两个没有必要保留测试的package的Vitest依赖、脚本和配置；没有使用pass-with-no-tests或skip掩盖测试删除。

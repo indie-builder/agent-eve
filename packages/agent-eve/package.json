@@ -3,12 +3,11 @@
   "private": true,
   "type": "module",
   "exports": {
-    ".": "./src/index.ts",
-    "./config": "./src/config.ts",
-    "./trust-policy": "./src/trust-policy.ts"
+    ".": "./src/client/run-agent.ts",
+    "./trust-policy": "./src/security/trust-policy.ts"
   },
   "scripts": {
-    "build": "tsdown src/index.ts --format esm --no-dts",
+    "build": "tsdown src/client/run-agent.ts --format esm --no-dts",
     "lint": "oxlint --deny-warnings src",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "test": "vitest run"

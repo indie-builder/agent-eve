@@ -6,8 +6,9 @@
 
 ## 能力边界
 
-- `agent/agent.ts` 用 `@agent-template/agent-eve/config` 的 `readEveAgentModel` 读取模型名，用 `src/provider.ts` 创建 Anthropic-compatible model 并读取 context window、compaction 和 session token limits。
-- `agent/channels/eve.ts` 用 `src/trust-policy.ts` 组装 route auth；service token 摘要比较复用 `@agent-template/agent-eve/trust-policy`，不要在 runtime 复制 auth 规则。
+- `agent/agent.ts` 用 `src/model/provider.ts` 读取模型名、创建 Anthropic-compatible model，并读取 context window、compaction 和 session token limits。
+- `agent/channels/eve.ts` 用 `src/security/channel-auth.ts` 组装 route auth；service token 摘要比较复用 `@agent-template/agent-eve/trust-policy`，不要在 runtime 复制 auth 规则。
+- provider 与 channel auth 的合同测试分别位于 `src/model/provider.test.ts` 和 `src/security/channel-auth.test.ts`；跨 authored surface 的检查保留在 `src/authored-surface.test.ts`。
 - `EVE_AGENT_MODEL` / `ANTHROPIC_MODEL` 默认 `group/flash`；通过 Anthropic Messages 协议调用本地网关，base URL 默认 `http://127.0.0.1:3425/v1`，`EVE_MAX_OUTPUT_TOKENS` 默认 1024。模型配置只属于 runtime，client 状态不报告模型。
 - 本地 Eve CLI 从 `apps/runtime/.env.local` 读取凭证；Compose 从根 `.env` 注入，容器访问宿主机网关用 `ANTHROPIC_DOCKER_BASE_URL`。
 - `EVE_AGENT_SERVICE_TOKEN` 是 API/Worker 到 Eve HTTP channel 的服务凭证；production 不注册 `localDev()`。
@@ -34,7 +35,7 @@ pnpm --filter @agent-template/runtime lint
 pnpm --filter @agent-template/runtime typecheck
 pnpm --filter @agent-template/runtime test
 pnpm --filter @agent-template/runtime build
-pnpm --filter @agent-template/runtime info
+pnpm --filter @agent-template/runtime run info
 pnpm --filter @agent-template/runtime eval:list
 ```
 

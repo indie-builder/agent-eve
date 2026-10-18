@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { defaultEveAgentModel } from "@agent-template/agent-eve/config";
+import { defaultEveAgentModel } from "./model/provider.js";
 
 describe("Eve authored surface", () => {
   it("loads the authored surface through eve defineAgent", async () => {

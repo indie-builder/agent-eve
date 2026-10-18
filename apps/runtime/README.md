@@ -1,6 +1,6 @@
 # Eve runtime service
 
-`@agent-template/runtime` 是独立部署的 Eve 服务。`agent/` 是 filesystem-first authored surface，`src/` 只放 provider 和 channel auth，`evals/` 是模型回归用例。
+`@agent-template/runtime` 是独立部署的 Eve 服务。`agent/` 是 filesystem-first authored surface，`src/model/provider.ts` 持有模型名解析、provider 和运行限制，`src/security/channel-auth.ts` 负责 channel auth，`evals/` 是模型回归用例。模块合同测试与源码相邻，`src/authored-surface.test.ts` 保留跨 authored surface 的检查。
 
 ## 服务边界
 
@@ -49,7 +49,7 @@ pnpm --filter @agent-template/runtime lint
 pnpm --filter @agent-template/runtime typecheck
 pnpm --filter @agent-template/runtime test
 pnpm --filter @agent-template/runtime build
-pnpm --filter @agent-template/runtime info
+pnpm --filter @agent-template/runtime run info
 pnpm --filter @agent-template/runtime eval:list
 ```
 
