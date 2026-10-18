@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { readFileSync } from "node:fs";
-import type { HandleMessageStreamEvent } from "eve/client";
+import type { MessageStreamEvent } from "eve/client";
 import {
   defaultEveAgentMaxReconnectAttempts,
   defaultEveAgentModel,
@@ -12,6 +12,26 @@ import {
   runEveAgent,
 } from "./index.js";
 import { encodeEveContinuation } from "./eve-continuation.js";
+
+const meta = { at: "2026-10-18T00:00:00.000Z", id: "evt_1" };
+
+function streamEvent<TType extends MessageStreamEvent["type"]>(
+  event: Omit<Extract<MessageStreamEvent, { type: TType }>, "meta">,
+): MessageStreamEvent {
+  return { ...event, meta } as MessageStreamEvent;
+}
+
+function responseOf(
+  sessionId: string,
+  events: MessageStreamEvent[],
+): AsyncIterable<MessageStreamEvent> & { sessionId: string } {
+  return {
+    sessionId,
+    async *[Symbol.asyncIterator]() {
+      yield* events;
+    },
+  };
+}
 
 describe("Eve Agent runtime", () => {
   it("points at the package-local authored surface", () => {
@@ -77,7 +97,7 @@ describe("Eve Agent runtime", () => {
       await import("../agent/connections/toolbox");
     const connection = toolbox as {
       description?: string;
-      tools?: { allow?: string[] };
+      tools?: { allow?: readonly string[] };
       url?: string;
     };
 
@@ -100,14 +120,11 @@ describe("Eve Agent runtime", () => {
       limits?: {
         maxInputTokensPerSession?: number;
         maxOutputTokensPerSession?: number;
-        maxSubagentDepth?: number;
-        maxSubagents?: number;
       };
     };
-    const sandbox = (await import("../agent/sandbox")).default as {
-      backend?: { name?: string };
-    };
-    const instrumentation = (await import("../agent/instrumentation")).default;
+    const sandbox = (await import("../agent/sandbox")).default;
+    const sandboxEnvironment = (await import("../agent/sandbox")).environment;
+    const otel = (await import("../agent/instrumentation/otel")).default;
     const hook = (await import("../agent/hooks/runtime-audit")).default as {
       events?: Record<string, unknown>;
     };
@@ -116,11 +133,19 @@ describe("Eve Agent runtime", () => {
     expect(agent.limits).toMatchObject({
       maxInputTokensPerSession: 1_000_000,
       maxOutputTokensPerSession: 100_000,
-      maxSubagentDepth: 1,
-      maxSubagents: 4,
     });
-    expect(sandbox.backend?.name).toBe("just-bash");
-    expect(instrumentation).toMatchObject({
+    expect(sandboxEnvironment.provider).toBe("just-bash");
+    expect(sandbox).toBeTypeOf("function");
+    expect(
+      otel.options.tracePolicy?.({
+        agentName: "agent-template-eve",
+        audience: "private",
+        channel: { kind: "http" },
+        environment: "production",
+        principalType: "service",
+      }),
+    ).toEqual({
+      emit: true,
       recordInputs: false,
       recordOutputs: false,
     });
@@ -135,21 +160,17 @@ describe("Eve Agent runtime", () => {
     expect(webSearch.kind).toBe("eve:disabled-tool");
   });
 
-  it.each([
-    "bash",
-    "glob",
-    "grep",
-    "read_file",
-    "web_fetch",
-    "web_search",
-    "write_file",
-  ])("disables the production-incompatible default tool %s", async (tool) => {
-    const definition = (await import(`../agent/tools/${tool}.ts`)).default as {
-      kind?: string;
-    };
+  it.each(["bash", "read_file", "web_fetch", "web_search", "write_file"])(
+    "disables the production-incompatible default tool %s",
+    async (tool) => {
+      const definition = (await import(`../agent/tools/${tool}.ts`))
+        .default as {
+        kind?: string;
+      };
 
-    expect(definition.kind).toBe("eve:disabled-tool");
-  });
+      expect(definition.kind).toBe("eve:disabled-tool");
+    },
+  );
 
   it("uses one model source for runtime state and authored surface", () => {
     const env = { ANTHROPIC_MODEL: "kimi-custom" };
@@ -202,10 +223,62 @@ describe("Eve Agent runtime", () => {
   it("runs through the Eve client when configured", async () => {
     const events: unknown[] = [];
     const continuation = encodeEveContinuation({
-      continuationToken: "eve:token-1",
       sessionId: "eve-session-1",
       streamIndex: 6,
     });
+    const streamed = [
+      streamEvent({
+        data: {
+          actions: [
+            {
+              callId: "call-1",
+              input: { limit: 1 },
+              kind: "tool-call",
+              toolName: "toolbox__list-agent-runs",
+            },
+          ],
+          sequence: 1,
+          stepIndex: 0,
+          turnId: "turn-1",
+        },
+        type: "actions.requested",
+      }),
+      streamEvent({
+        data: {
+          result: {
+            callId: "call-1",
+            kind: "tool-result",
+            output: [{ runId: "run-1" }],
+            toolName: "toolbox__list-agent-runs",
+          },
+          sequence: 2,
+          status: "completed",
+          stepIndex: 0,
+          turnId: "turn-1",
+        },
+        type: "action.result",
+      }),
+      streamEvent({
+        data: {
+          messageDelta: "Do",
+          sequence: 3,
+          stepIndex: 0,
+          turnId: "turn-1",
+        },
+        type: "message.appended",
+      }),
+      streamEvent({
+        data: {
+          finishReason: "stop",
+          message: "Done",
+          sequence: 4,
+          stepIndex: 0,
+          turnId: "turn-1",
+        },
+        type: "message.completed",
+      }),
+      streamEvent({ type: "session.completed" }),
+    ];
 
     await expect(
       runEveAgent(
@@ -213,71 +286,19 @@ describe("Eve Agent runtime", () => {
         parseEveAgentConfig({ EVE_AGENT_HOST: "http://127.0.0.1:13010" }),
         {
           createClient: () => ({
-            session: () => ({
-              state: {
-                continuationToken: "eve:token-1",
-                sessionId: "eve-session-1",
-                streamIndex: 6,
-              },
-              send: async () => ({
-                continuationToken: "eve:token-1",
-                sessionId: "eve-session-1",
-                async *[Symbol.asyncIterator](): AsyncGenerator<HandleMessageStreamEvent> {
-                  yield {
-                    data: {
-                      actions: [
-                        {
-                          callId: "call-1",
-                          input: { limit: 1 },
-                          kind: "tool-call",
-                          toolName: "toolbox__list-agent-runs",
-                        },
-                      ],
-                      sequence: 1,
-                      stepIndex: 0,
-                      turnId: "turn-1",
-                    },
-                    type: "actions.requested",
-                  };
-                  yield {
-                    data: {
-                      result: {
-                        callId: "call-1",
-                        kind: "tool-result",
-                        output: [{ runId: "run-1" }],
-                        toolName: "toolbox__list-agent-runs",
-                      },
-                      sequence: 2,
-                      status: "completed",
-                      stepIndex: 0,
-                      turnId: "turn-1",
-                    },
-                    type: "action.result",
-                  };
-                  yield {
-                    data: {
-                      messageDelta: "Do",
-                      messageSoFar: "Do",
-                      sequence: 3,
-                      stepIndex: 0,
-                      turnId: "turn-1",
-                    },
-                    type: "message.appended",
-                  };
-                  yield {
-                    data: {
-                      finishReason: "stop",
-                      message: "Done",
-                      sequence: 4,
-                      stepIndex: 0,
-                      turnId: "turn-1",
-                    },
-                    type: "message.completed",
-                  };
-                  yield { type: "session.completed" };
+            sessions: {
+              create: async () => ({
+                session: {
+                  state: { sessionId: "eve-session-1", streamIndex: 6 },
+                  send: async () => responseOf("eve-session-1", streamed),
+                  respond: async () => responseOf("eve-session-1", streamed),
                 },
+                response: responseOf("eve-session-1", streamed),
               }),
-            }),
+              attach: () => {
+                throw new Error("unexpected attach");
+              },
+            },
           }),
           onEvent(event) {
             events.push(event);
@@ -324,15 +345,45 @@ describe("Eve Agent runtime", () => {
 
   it("preserves a waiting Eve session and surfaces HITL requests", async () => {
     const priorSession = {
-      continuationToken: "eve:prior",
       sessionId: "eve-session-1",
       streamIndex: 4,
     };
     const nextSession = {
-      continuationToken: "eve:next",
       sessionId: "eve-session-1",
       streamIndex: 9,
     };
+    const streamed = [
+      streamEvent({
+        type: "input.requested",
+        data: {
+          requests: [
+            {
+              requestId: "request-1",
+              kind: "tool-approval",
+              prompt: "是否批准查询？",
+              display: "confirmation",
+              action: {
+                callId: "call-1",
+                input: {},
+                kind: "tool-call",
+                toolName: "toolbox__list-agent-runs",
+              },
+              options: [
+                { id: "approve", label: "批准" },
+                { id: "deny", label: "拒绝" },
+              ],
+            },
+          ],
+          sequence: 2,
+          stepIndex: 0,
+          turnId: "turn-2",
+        },
+      }),
+      streamEvent({
+        type: "session.waiting",
+        data: { continuationToken: "", wait: "next-user-message" },
+      }),
+    ];
 
     await expect(
       runEveAgent(
@@ -349,56 +400,27 @@ describe("Eve Agent runtime", () => {
         parseEveAgentConfig({ EVE_AGENT_HOST: "http://127.0.0.1:13010" }),
         {
           createClient: () => ({
-            session: (state) => {
-              expect(state).toEqual({
-                continuationToken: "eve:prior",
-                sessionId: "eve-session-1",
-                streamIndex: 4,
-              });
+            sessions: {
+              create: () => {
+                throw new Error("unexpected create");
+              },
+              attach: (sessionId, options) => {
+                expect(sessionId).toBe("eve-session-1");
+                expect(options).toEqual({ streamIndex: 4 });
 
-              return {
-                state: nextSession,
-                send: async (input) => {
-                  expect(input.inputResponses).toEqual([
-                    { requestId: "request-0", optionId: "approve" },
-                  ]);
-                  return {
-                    continuationToken: "eve:next",
-                    sessionId: "eve-session-1",
-                    async *[Symbol.asyncIterator](): AsyncGenerator<HandleMessageStreamEvent> {
-                      yield {
-                        type: "input.requested",
-                        data: {
-                          requests: [
-                            {
-                              requestId: "request-1",
-                              prompt: "是否批准查询？",
-                              display: "confirmation",
-                              action: {
-                                callId: "call-1",
-                                input: {},
-                                kind: "tool-call",
-                                toolName: "toolbox__list-agent-runs",
-                              },
-                              options: [
-                                { id: "approve", label: "批准" },
-                                { id: "deny", label: "拒绝" },
-                              ],
-                            },
-                          ],
-                          sequence: 2,
-                          stepIndex: 0,
-                          turnId: "turn-2",
-                        },
-                      };
-                      yield {
-                        type: "session.waiting",
-                        data: { wait: "next-user-message" },
-                      };
-                    },
-                  };
-                },
-              };
+                return {
+                  state: nextSession,
+                  async send() {
+                    throw new Error("unexpected send");
+                  },
+                  async respond(responses) {
+                    expect(responses).toEqual([
+                      { requestId: "request-0", optionId: "approve" },
+                    ]);
+                    return responseOf("eve-session-1", streamed);
+                  },
+                };
+              },
             },
           }),
         },

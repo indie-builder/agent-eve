@@ -64,9 +64,9 @@ _Avoid_: Agent runtime, app service
 A Tool provider backed by MCP Toolbox for Databases.
 _Avoid_: Database helper, embedded database client
 
-**Toolbox toolset**:
+**Toolbox group**:
 A named group of Toolbox server tools used to generate a focused Agent capability.
-_Avoid_: Runtime plugin, database permission set
+_Avoid_: Toolbox toolset (deprecated upstream term), runtime plugin, database permission set
 
 **Agent MCP connection**:
 A connection owned by one Agent runtime that exposes an allowed subset of an external Tool provider to that runtime.

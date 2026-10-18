@@ -15,9 +15,9 @@
     "@agent-template/agent-claude": "workspace:*",
     "@agent-template/agent-eve": "workspace:*",
     "@agent-template/shared": "workspace:*",
-    "zod": "^4.4.3"
+    "zod": "^4.6.7"
   },
   "devDependencies": {
-    "vitest": "^4.1.9"
+    "vitest": "^5.0.5"
   }
 }

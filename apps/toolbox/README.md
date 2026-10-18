@@ -1,6 +1,6 @@
 # MCP Toolbox 生产级 SQL 示例
 
-这里使用 Google 的 [MCP Toolbox for Databases](https://mcp-toolbox.dev/) 为 `TemplateEvent` 和合成电商读模型提供生产 Agent 可调用的只读 PostgreSQL 工具。配置入口是 [tools.yaml](./tools.yaml)，服务由根目录的 `docker-compose.yml` 以固定版本 `1.6.0` 运行。
+这里使用 Google 的 [MCP Toolbox for Databases](https://mcp-toolbox.dev/) 为 `TemplateEvent` 和合成电商读模型提供生产 Agent 可调用的只读 PostgreSQL 工具。配置入口是 [tools.yaml](./tools.yaml)，服务由根目录的 `docker-compose.yml` 以固定版本 `1.14.0` 运行。
 
 ## 设计边界
 
@@ -25,9 +25,9 @@
 
 ## 电商业务 Agent Skills
 
-Toolbox 官方的 `skills-generate` 会把自定义 Toolset 转换为 Agent Skill。项目在此基础上生成四个按业务任务拆分的 Skill，并同时接入 Eve 和 Claude Agent：
+Toolbox 官方的 `skills-generate` 会把自定义 Group 转换为 Agent Skill。项目在此基础上生成四个按业务任务拆分的 Skill，并同时接入 Eve 和 Claude Agent：
 
-| Skill                              | Toolbox Toolset                    | 业务用途                 |
+| Skill                              | Toolbox Group                      | 业务用途                 |
 | ---------------------------------- | ---------------------------------- | ------------------------ |
 | `ecommerce-sales-analysis`         | `ecommerce_sales_analytics`        | 销售趋势、退款、渠道分析 |
 | `ecommerce-product-analysis`       | `ecommerce_product_analytics`      | 商品排行与选品分析       |

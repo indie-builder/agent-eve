@@ -5,9 +5,8 @@ import {
 } from "./eve-continuation.js";
 
 describe("Eve continuation adapter", () => {
-  it("round-trips Eve SessionState behind an opaque Agent token", () => {
+  it("round-trips the Eve client session cursor behind an opaque Agent token", () => {
     const state = {
-      continuationToken: "eve:secret-token",
       sessionId: "session-1",
       streamIndex: 12,
     };

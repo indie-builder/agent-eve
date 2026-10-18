@@ -16,7 +16,7 @@ description: Investigates ecommerce orders using bounded operational lists and e
 
 ## Available Toolbox tools
 
-### toolbox\_\_get-ecommerce-order-detail
+### toolbox__get-ecommerce-order-detail
 
 Return one synthetic ecommerce order with its customer business context and line items.
 Use this tool only when the user provides a concrete orderNumber.
@@ -29,7 +29,7 @@ Use this tool only when the user provides a concrete orderNumber.
 
 ---
 
-### toolbox\_\_list-ecommerce-orders-in-window
+### toolbox__list-ecommerce-orders-in-window
 
 List a bounded operational order view for the synthetic ecommerce dataset.
 Customer data is limited to synthetic customer code, segment, and region; no direct contact data is returned.

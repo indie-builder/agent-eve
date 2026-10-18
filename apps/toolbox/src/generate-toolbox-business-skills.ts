@@ -14,14 +14,14 @@ type BusinessSkill = {
   description: string;
   name: string;
   tools: string[];
-  toolset: string;
+  group: string;
   workflow: string;
 };
 
 const businessSkills: BusinessSkill[] = [
   {
     name: "ecommerce-sales-analysis",
-    toolset: "ecommerce_sales_analytics",
+    group: "ecommerce_sales_analytics",
     description:
       "Analyzes ecommerce revenue, refunds, net sales, buyers, and channel performance. Use when the user asks about sales trends, GMV, refunds, net sales, or channel comparison.",
     tools: [
@@ -35,7 +35,7 @@ const businessSkills: BusinessSkill[] = [
   },
   {
     name: "ecommerce-product-analysis",
-    toolset: "ecommerce_product_analytics",
+    group: "ecommerce_product_analytics",
     description:
       "Ranks ecommerce products by units, gross merchandise sales, and refund-adjusted net merchandise sales. Use when the user asks for product ranking, best sellers, category performance, or merchandising analysis.",
     tools: ["list-ecommerce-top-products"],
@@ -46,7 +46,7 @@ const businessSkills: BusinessSkill[] = [
   },
   {
     name: "ecommerce-order-operations",
-    toolset: "ecommerce_order_operations",
+    group: "ecommerce_order_operations",
     description:
       "Investigates ecommerce orders using bounded operational lists and exact order details. Use when the user asks about order status, customer segment context, a concrete order number, or order-level troubleshooting.",
     tools: ["list-ecommerce-orders-in-window", "get-ecommerce-order-detail"],
@@ -57,7 +57,7 @@ const businessSkills: BusinessSkill[] = [
   },
   {
     name: "ecommerce-fulfillment-operations",
-    toolset: "ecommerce_fulfillment_operations",
+    group: "ecommerce_fulfillment_operations",
     description:
       "Finds paid but unfulfilled ecommerce orders and supports fulfillment exception investigation. Use when the user asks about fulfillment backlog, waiting time, delayed orders, or operational exceptions.",
     tools: [
@@ -101,8 +101,8 @@ try {
         "skills-generate",
         "--name",
         skill.name,
-        "--toolset",
-        skill.toolset,
+        "--group",
+        skill.group,
         "--description",
         skill.description,
         "--output-dir",
@@ -110,7 +110,7 @@ try {
         "--invocation-mode",
         "npx",
         "--toolbox-version",
-        "1.6.0",
+        "1.14.0",
       ],
       { cwd: repositoryRoot, stdio: "inherit" },
     );

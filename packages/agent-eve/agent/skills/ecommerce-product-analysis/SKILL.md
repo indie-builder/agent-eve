@@ -16,7 +16,7 @@ description: Ranks ecommerce products by units, gross merchandise sales, and ref
 
 ## Available Toolbox tools
 
-### toolbox\_\_list-ecommerce-top-products
+### toolbox__list-ecommerce-top-products
 
 Rank synthetic ecommerce products by paid quantity, gross merchandise sales, and net merchandise sales.
 Order-level refunds are allocated proportionally to merchandise; shipping is excluded.

@@ -1,6 +1,6 @@
 import { defineSandbox } from "eve/sandbox";
-import { justbash } from "eve/sandbox/just-bash";
+import { JustBashSandbox } from "eve/sandbox/just-bash";
 
-export default defineSandbox({
-  backend: justbash({ autoInstall: false }),
-});
+export const environment = JustBashSandbox.environment({ autoInstall: false });
+
+export default defineSandbox(() => environment.open());

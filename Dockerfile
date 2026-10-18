@@ -1,8 +1,6 @@
-FROM node:24-alpine
+FROM node:26.12.0-alpine
 
 WORKDIR /app
-
-ENV COREPACK_ENABLE_DOWNLOAD_PROMPT=0
 
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml turbo.json ./
 COPY apps/api/package.json apps/api/package.json
@@ -16,7 +14,7 @@ COPY packages/logger/package.json packages/logger/package.json
 COPY packages/shared/package.json packages/shared/package.json
 COPY packages/ui/package.json packages/ui/package.json
 
-RUN corepack enable && corepack install && pnpm install --frozen-lockfile
+RUN npm install --global "$(node -p 'require("./package.json").packageManager')" && pnpm install --frozen-lockfile
 
 COPY . .
 

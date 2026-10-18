@@ -16,7 +16,7 @@ description: Finds paid but unfulfilled ecommerce orders and supports fulfillmen
 
 ## Available Toolbox tools
 
-### toolbox\_\_get-ecommerce-order-detail
+### toolbox__get-ecommerce-order-detail
 
 Return one synthetic ecommerce order with its customer business context and line items.
 Use this tool only when the user provides a concrete orderNumber.
@@ -29,7 +29,7 @@ Use this tool only when the user provides a concrete orderNumber.
 
 ---
 
-### toolbox\_\_list-ecommerce-fulfillment-exceptions
+### toolbox__list-ecommerce-fulfillment-exceptions
 
 List paid synthetic ecommerce orders that have not yet been fulfilled in a bounded UTC time window.
 Use this read-only tool for fulfillment-operations validation.

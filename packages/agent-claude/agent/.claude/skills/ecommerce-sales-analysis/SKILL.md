@@ -16,7 +16,7 @@ description: Analyzes ecommerce revenue, refunds, net sales, buyers, and channel
 
 ## Available Toolbox tools
 
-### mcp**toolbox**summarize-ecommerce-sales-by-channel
+### mcp__toolbox__summarize-ecommerce-sales-by-channel
 
 Compare synthetic ecommerce sales performance across web, mini program, marketplace, and live stream channels.
 Use this read-only tool for bounded channel-performance analysis.
@@ -30,7 +30,7 @@ Use this read-only tool for bounded channel-performance analysis.
 
 ---
 
-### mcp**toolbox**summarize-ecommerce-sales-by-day
+### mcp__toolbox__summarize-ecommerce-sales-by-day
 
 Summarize synthetic ecommerce gross sales, refunds, net sales, orders, and buyers by day.
 Use this read-only tool for bounded sales-trend analysis in an ISO-8601 UTC time window.

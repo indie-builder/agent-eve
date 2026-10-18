@@ -16,8 +16,6 @@ const agent: AgentDefinition = defineAgent({
   limits: {
     maxInputTokensPerSession: limits.maxInputTokensPerSession,
     maxOutputTokensPerSession: limits.maxOutputTokensPerSession,
-    maxSubagentDepth: 1,
-    maxSubagents: 4,
   },
 });
 

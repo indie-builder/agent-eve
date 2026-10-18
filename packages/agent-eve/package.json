@@ -19,13 +19,13 @@
   },
   "dependencies": {
     "@agent-template/shared": "workspace:*",
-    "@ai-sdk/anthropic": "^4.0.7",
-    "ai": "^7.0.14",
+    "@ai-sdk/anthropic": "^4.0.82",
+    "ai": "^7.0.143",
     "eve": "latest",
-    "just-bash": "^3.1.0",
-    "zod": "^4.4.3"
+    "just-bash": "^3.6.0",
+    "zod": "^4.6.7"
   },
   "devDependencies": {
-    "vitest": "^4.1.9"
+    "vitest": "^5.0.5"
   }
 }

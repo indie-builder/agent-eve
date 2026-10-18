@@ -36,12 +36,12 @@ const seedEvents: SeedEvent[] = [
   },
   {
     id: "evt-run-support-001-toolset",
-    type: "toolbox.toolset.loaded",
+    type: "toolbox.group.loaded",
     createdAt: new Date("2026-07-04T09:00:04.000Z"),
     payload: {
       runId: "run_support_001",
       toolProvider: "toolbox",
-      toolset: "agent_template_read_model",
+      group: "agent_template_read_model",
       tools: [
         "list-template-events",
         "get-template-event",

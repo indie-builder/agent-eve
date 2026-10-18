@@ -8,6 +8,8 @@
 - 后端：TypeScript 7 + Fastify + Prisma + PostgreSQL + Redis + BullMQ + MCP Toolbox + Claude Agent SDK + Eve + Zod + Pino + Vitest
 - 工程化：pnpm Workspace + Turborepo
 
+开发环境使用 Node.js 26.12.0（`.nvmrc`）和 `package.json` 声明的 pnpm 版本。使用 nvm 时先运行 `nvm install && nvm use`。依赖跟进最新稳定版；大版本升级直接迁移代码，不保留旧版双轨实现。
+
 ## TypeScript 7
 
 项目默认使用 TypeScript 7 原生编译器：`pnpm exec tsc` 和各 workspace 的
@@ -25,6 +27,8 @@ pnpm typecheck            # 使用 TypeScript 7 检查全部 workspace
 `@typescript/typescript6` 兼容层。
 
 ## 快速开始
+
+基础服务使用 PostgreSQL 18.6、Redis 8.10.2 和 MCP Toolbox 1.14.0。已有 PostgreSQL 17 数据的环境先按 [PostgreSQL 18 升级说明](docs/upgrade-postgres18.md) 导出和恢复；新配置使用独立卷，旧卷保留。
 
 ```bash
 cp .env.example .env
@@ -77,7 +81,7 @@ packages/
   shared/        共享 Zod schema 和 TypeScript 类型
 ```
 
-`apps/toolbox/tools.yaml` 定义生产 Agent 可加载的数据库工具。默认 toolset 是 `agent_template_read_model`：保留 `TemplateEvent` 的只读运行观测，同时提供合成电商的日销售、渠道、商品排行、订单详情和履约异常查询。`pnpm db:seed` 会写入 96 个脱敏客户、24 个商品和 600 个确定性订单；完整的参数、索引和 MCP 验证命令见 [apps/toolbox/README.md](apps/toolbox/README.md)。prebuilt generic tools 仅用于开发期探索，不作为生产 Agent 默认能力。
+`apps/toolbox/tools.yaml` 定义生产 Agent 可加载的数据库工具。默认 group 是 `agent_template_read_model`：保留 `TemplateEvent` 的只读运行观测，同时提供合成电商的日销售、渠道、商品排行、订单详情和履约异常查询。`pnpm db:seed` 会写入 96 个脱敏客户、24 个商品和 600 个确定性订单；完整的参数、索引和 MCP 验证命令见 [apps/toolbox/README.md](apps/toolbox/README.md)。prebuilt generic tools 仅用于开发期探索，不作为生产 Agent 默认能力。
 
 MCP 连接由各 Agent runtime 自己维护：Claude 使用 `packages/agent-claude/agent/.mcp.json` 和 `agent/.claude/settings.json`，Eve 使用 `packages/agent-eve/agent/connections/toolbox.ts`。Claude 的稳定指令位于 `agent/CLAUDE.md`，业务 Skill 位于 `agent/.claude/skills/`；两套 runtime 都从 `TOOLBOX_URL` 读取 endpoint，API 和 Web 不维护 MCP registry 或代理 tool/resource 请求。
 

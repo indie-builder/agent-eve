@@ -1,5 +1,5 @@
 import { createAnthropic } from "@ai-sdk/anthropic";
-import type { AgentModelDefinition } from "eve";
+import type { LanguageModel } from "ai";
 
 export const defaultEveAgentModel = "kimi-for-coding";
 export const defaultEveModelContextWindowTokens = 128_000;
@@ -34,7 +34,7 @@ export function readEveAnthropicBaseURL(
 
 export function createEveAnthropicModel(
   input: Record<string, unknown>,
-): AgentModelDefinition {
+): LanguageModel {
   const baseURL = readEveAnthropicBaseURL(input);
   const authToken =
     typeof input.ANTHROPIC_API_KEY === "string" &&

@@ -18,12 +18,14 @@
 - `agent/instructions.md` 放基础 system prompt。
 - `agent/channels/eve.ts` 放 Eve HTTP route auth；不要删除 API service auth，否则 `@agent-template/agent-eve` client 会被 Eve session route 拒绝。
 - `agent/tools/web_search.ts` 禁用 Eve provider-managed `web_search`；Kimi Anthropic-compatible stream 会返回缺少 `id` 的 server tool block，启用后会触发 Eve/AI SDK 类型校验失败。
-- 生产 surface 默认关闭 `bash`、`read_file`、`write_file`、`glob`、`grep`、`web_fetch` 和 `web_search`；需要恢复时必须先定义最小权限、审批和 sandbox egress 策略。Eve 0.22.4 不支持通过 `disableTool()` 关闭内建 `agent`，因此使用一层 subagent depth 和 session token budget 收口。
-- 当前 sandbox 显式固定 `just-bash({ autoInstall: false })`，避免 Eve `defaultBackend()` 在本地或自托管环境隐式启动 Docker；如恢复 shell/文件能力，必须重新评估并切换为具有明确 egress policy 的强隔离 backend。
-- Eve `SessionState` 只存在于 runtime adapter 内部，通过 shared opaque `continuation.token` 往返；`session.waiting` 必须映射为 `waiting`，不能误报为 completed 或丢弃 continuation。HITL option 必须通过 shared `responses` 转换为 Eve `InputResponse`，不要要求用户依赖文本 heuristic。
+- 生产 surface 默认关闭 `bash`、`read_file`、`write_file`、`web_fetch` 和 `web_search`；`glob`、`grep`、`sleep`、`ask_question` 是 opt-in 工具，未 auth 时无需 disable 文件。需要恢复能力时必须先定义最小权限、审批和 sandbox egress 策略。Eve 0.80 起 `agent/tools/agent.ts` 可用 `disableTool()` 关闭内建 `agent`，但会同时失去 `ctx.agent()` 的 workflow 调用入口，默认保留并靠 session token 预算收口。
+- 当前 sandbox 使用 `JustBashSandbox.environment({ autoInstall: false })` 并通过 `defineSandbox(() => environment.open())` 绑定，避免 Eve `DefaultSandbox` 在本地或自托管环境隐式启动 Docker；如恢复 shell/文件能力，必须重新评估并切换为具有明确 egress policy 的强隔离 backend。
+- `agent/instrumentation/` 目录替代旧的 `agent/instrumentation.ts`：`otel.ts` 声明进程级 metadata-only trace policy，`runtime-context.ts` 只注入 channel/principal 类型；不再使用 `recordInputs`/`recordOutputs` 或 `events["step.started"]` 旧字段。
+- Eve `ClientSessionState` 只存在于 runtime adapter 内部，通过 shared opaque `continuation.token` 往返；client 使用 `sessions.create()` / `sessions.attach()`，`session.waiting` 和 `turn.waiting(on: "input")` 都映射为 `waiting`，不能误报为 completed 或丢弃 continuation。HITL option 必须通过 shared `responses` 转换为 Eve `InputResponse`，调用 `session.respond()`，不要要求用户依赖文本 heuristic。
+- Eve stream 事件使用 delta-only 契约：`message.appended` 只携带 `messageDelta`，adapter 必须自行累加到 `AgentRunEvent.text`；`message.completed` 提供权威文本。
 - production Eve channel 不注册 `localDev()`，避免伪造 Host 绕过 service token；仅 development/test 可使用 local fallback。
 - instrumentation 不记录模型输入输出正文；hook 日志只记录 session lifecycle、channel、错误码和授权结果，不记录 prompt、tool input/output 或凭证。
-- `agent/tools`、`agent/skills`、`agent/channels`、`agent/hooks`、`agent/sandbox`、`agent/subagents` 按 Eve 语义增长。
+- `agent/tools`、`agent/skills`、`agent/channels`、`agent/hooks`、`agent/instrumentation`、`agent/sandbox`、`agent/subagents` 按 Eve 语义增长。
 - 电商业务 Skill 以 Toolbox 官方 `skills-generate` 产物为来源，通过 `pnpm --filter @agent-template/toolbox skills:generate` 同步到 Eve 与 Claude authored surface。
 - 运行时 Skill 只安装适配后的 `SKILL.md`，并调用 `toolbox__<tool>` connection tools；不要把官方生成的数据库直连脚本复制进 Agent skill 目录。
 - Toolbox 能力通过 `agent/connections/toolbox.ts` 的 Eve MCP connection 接入；该文件维护 endpoint 和 `tools.allow`，不要恢复一组 authored tool 转发器。

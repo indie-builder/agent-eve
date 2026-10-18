@@ -1,58 +1,48 @@
-import type {
-  HandleMessageStreamEvent,
-  InputOption,
-  InputRequest,
-} from "eve/client";
+import type { InputOption, InputRequest, MessageStreamEvent } from "eve/client";
 import type { AgentRunEvent } from "@agent-template/shared";
+
+export type EveStreamProjectionState = {
+  messageText: string;
+};
 
 export type EveTurnProjection =
   | { status: "completed" | "waiting"; output: string }
   | { status: "failed"; reason: string };
 
 export function projectEveTurn(
-  events: readonly HandleMessageStreamEvent[],
+  events: readonly MessageStreamEvent[],
 ): EveTurnProjection | undefined {
-  const failed = findLastByType(events, "session.failed");
+  const failed =
+    findLastByType(events, "session.failed") ??
+    findLastByType(events, "turn.failed");
   if (failed) {
     return { status: "failed", reason: failed.data.message };
   }
 
-  let boundary:
-    | Extract<
-        HandleMessageStreamEvent,
-        { type: "session.waiting" | "session.completed" }
-      >
-    | undefined;
-  for (let index = events.length - 1; index >= 0; index -= 1) {
-    const event = events[index];
-    if (
-      event?.type === "session.waiting" ||
-      event?.type === "session.completed"
-    ) {
-      boundary = event;
-      break;
-    }
-  }
+  const boundary = findLastBoundary(events);
   if (!boundary) {
     return undefined;
   }
 
   return {
-    status: boundary.type === "session.waiting" ? "waiting" : "completed",
+    status: boundary.type === "session.completed" ? "completed" : "waiting",
     output: findEveOutput(events),
   };
 }
 
 export function projectEveStreamEvent(
-  event: HandleMessageStreamEvent,
+  event: MessageStreamEvent,
+  state: EveStreamProjectionState,
 ): AgentRunEvent[] {
   switch (event.type) {
     case "message.appended":
-      return [{ kind: "text", text: event.data.messageSoFar }];
-    case "message.completed":
-      return typeof event.data.message === "string"
-        ? [{ kind: "text", text: event.data.message }]
+      state.messageText += event.data.messageDelta;
+      return state.messageText
+        ? [{ kind: "text", text: state.messageText }]
         : [];
+    case "message.completed":
+      state.messageText = "";
+      return [{ kind: "text", text: event.data.message }];
     case "actions.requested":
       return event.data.actions.map((action) => ({
         kind: "tool-call",
@@ -107,31 +97,30 @@ export function projectEveStreamEvent(
           status: event.data.outcome,
         },
       ];
-    case "subagent.called":
+    case "agent.started":
       return [
         {
           kind: "subagent",
           name: event.data.name,
           status: "started",
-          sessionId: event.data.childSessionId,
+          sessionId: event.data.sessionId,
         },
       ];
-    case "subagent.started":
-      return [
-        {
-          kind: "subagent",
-          name: event.data.subagentName,
-          status: "started",
-        },
-      ];
-    case "subagent.completed":
-      return [
-        {
-          kind: "subagent",
-          name: event.data.subagentName,
-          status: "completed",
-        },
-      ];
+    case "task.started":
+      return [];
+    case "task.settled":
+      return event.data.kind === "agent" && event.data.name
+        ? [
+            {
+              kind: "subagent",
+              name: event.data.name,
+              status:
+                event.data.status === "cancelled"
+                  ? "stopped"
+                  : event.data.status,
+            },
+          ]
+        : [];
     case "compaction.requested":
       return [
         {
@@ -175,6 +164,12 @@ export function projectEveStreamEvent(
     case "turn.failed":
     case "session.failed":
       return [{ kind: "error", message: event.data.message }];
+    case "action.input.appended":
+    case "action.partial":
+    case "approval.candidate":
+    case "approval.settled":
+    case "context.cleared":
+    case "input.resolved":
     case "message.received":
     case "reasoning.appended":
     case "reasoning.completed":
@@ -182,10 +177,16 @@ export function projectEveStreamEvent(
     case "session.completed":
     case "session.started":
     case "step.started":
-    case "subagent.event":
+    case "turn.cancelled":
     case "turn.completed":
     case "turn.started":
+    case "turn.waiting":
       return [];
+    default: {
+      const unhandled: never = event;
+      void unhandled;
+      return [];
+    }
   }
 }
 
@@ -215,12 +216,13 @@ function projectInputOption(option: InputOption) {
 
 function readActionRequestName(
   action: Extract<
-    HandleMessageStreamEvent,
+    MessageStreamEvent,
     { type: "actions.requested" }
   >["data"]["actions"][number],
 ) {
   switch (action.kind) {
     case "tool-call":
+    case "workflow-tool-call":
       return action.toolName;
     case "subagent-call":
       return `eve:subagent:${action.subagentName}`;
@@ -233,7 +235,7 @@ function readActionRequestName(
 
 function readActionResultName(
   result: Extract<
-    HandleMessageStreamEvent,
+    MessageStreamEvent,
     { type: "action.result" }
   >["data"]["result"],
 ) {
@@ -247,33 +249,71 @@ function readActionResultName(
   }
 }
 
-function findEveOutput(events: readonly HandleMessageStreamEvent[]): string {
+function findLastBoundary(events: readonly MessageStreamEvent[]) {
+  for (let index = events.length - 1; index >= 0; index -= 1) {
+    const event = events[index];
+    if (
+      event?.type === "session.waiting" ||
+      event?.type === "session.completed" ||
+      (event?.type === "turn.waiting" && event.data.on === "input")
+    ) {
+      return event;
+    }
+  }
+
+  return undefined;
+}
+
+function findEveOutput(events: readonly MessageStreamEvent[]): string {
   const result = findLastByType(events, "result.completed");
   if (result) {
     return formatEveOutput(result.data.result);
   }
 
-  for (let index = events.length - 1; index >= 0; index -= 1) {
-    const event = events[index];
-    if (event?.type === "message.completed" && event.data.message !== null) {
-      return event.data.message;
-    }
-    if (event?.type === "message.appended") {
-      return event.data.messageSoFar;
+  const final = findLastMessage(
+    events,
+    (finishReason) => finishReason !== "tool-calls",
+  );
+  const anyMessage = final ?? findLastMessage(events, () => true);
+  if (anyMessage) {
+    return anyMessage.data.message;
+  }
+
+  let streamed = "";
+  for (const event of events) {
+    if (event.type === "message.appended") {
+      streamed += event.data.messageDelta;
     }
   }
 
-  return "";
+  return streamed;
 }
 
-function findLastByType<TType extends HandleMessageStreamEvent["type"]>(
-  events: readonly HandleMessageStreamEvent[],
+function findLastMessage(
+  events: readonly MessageStreamEvent[],
+  predicate: (finishReason: string) => boolean,
+) {
+  for (let index = events.length - 1; index >= 0; index -= 1) {
+    const event = events[index];
+    if (
+      event?.type === "message.completed" &&
+      predicate(event.data.finishReason)
+    ) {
+      return event;
+    }
+  }
+
+  return undefined;
+}
+
+function findLastByType<TType extends MessageStreamEvent["type"]>(
+  events: readonly MessageStreamEvent[],
   type: TType,
-): Extract<HandleMessageStreamEvent, { type: TType }> | undefined {
+): Extract<MessageStreamEvent, { type: TType }> | undefined {
   for (let index = events.length - 1; index >= 0; index -= 1) {
     const event = events[index];
     if (event?.type === type) {
-      return event as Extract<HandleMessageStreamEvent, { type: TType }>;
+      return event as Extract<MessageStreamEvent, { type: TType }>;
     }
   }
 

@@ -1,9 +1,10 @@
 import { z } from "zod";
 import { Client } from "eve/client";
 import type {
-  HandleMessageStreamEvent,
+  ClientSessionState,
   InputResponse,
-  SessionState,
+  MessageStreamEvent,
+  StreamReconnectPolicy,
 } from "eve/client";
 import type {
   AgentContinuation,
@@ -82,23 +83,49 @@ export type EveAgentRunResult =
       continuation?: AgentContinuation;
     };
 
+type EveMessageResponse = AsyncIterable<MessageStreamEvent> & {
+  readonly sessionId: string;
+};
+
+type EveTurnOptions = {
+  signal?: AbortSignal;
+  streamReconnectPolicy?: StreamReconnectPolicy;
+};
+
 type EveClientSession = {
-  readonly state: SessionState;
-  send(input: {
-    message?: string;
-    inputResponses?: readonly InputResponse[];
-    signal?: AbortSignal;
-  }): Promise<EveMessageResponse>;
+  readonly state: ClientSessionState;
+  send(message: string, options?: EveTurnOptions): Promise<EveMessageResponse>;
+  respond(
+    responses: readonly InputResponse[],
+    options?: EveTurnOptions,
+  ): Promise<EveMessageResponse>;
 };
 
 type EveClient = {
-  session(state?: SessionState): EveClientSession;
+  readonly sessions: {
+    attach(
+      sessionId: string,
+      options?: { streamIndex?: number },
+    ): EveClientSession;
+    create(input: {
+      message: string;
+      signal?: AbortSignal;
+      streamReconnectPolicy?: StreamReconnectPolicy;
+    }): Promise<{ session: EveClientSession; response: EveMessageResponse }>;  };
 };
 
-type EveMessageResponse = AsyncIterable<HandleMessageStreamEvent> & {
-  continuationToken: string | undefined;
-  sessionId: string;
-};
+function readEveTurnOptions(config: EveAgentConfig): EveTurnOptions {
+  return {
+    streamReconnectPolicy: {
+      streamOpenReconnectPolicy: {
+        maxAttempts: Math.max(config.maxReconnectAttempts, 1),
+      },
+      streamIdleReconnectPolicy: {
+        maxAttempts: config.maxReconnectAttempts,
+      },
+    },
+  };
+}
 
 export function parseEveAgentConfig(
   input: Record<string, unknown>,
@@ -157,47 +184,73 @@ export async function runEveAgent(
     };
   }
 
-  let initialState: SessionState | undefined;
+  let initialState: ClientSessionState | undefined;
   try {
     initialState = decodeEveContinuation(input.continuation);
   } catch (caught) {
     return createFailedResult(formatCaughtError(caught), options.onEvent);
   }
 
+  if (!initialState && !input.prompt) {
+    return createFailedResult(
+      "An Eve Agent run requires a prompt or input responses",
+      options.onEvent,
+    );
+  }
+
   const client = (options.createClient ?? createEveClient)(config.host, config);
-  const session = client.session(initialState);
-  const rawEvents: HandleMessageStreamEvent[] = [];
   const events: AgentRunEvent[] = [];
+  const rawEvents: MessageStreamEvent[] = [];
+  const projectionState = { messageText: "" };
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), config.requestTimeoutMs);
+  let session: EveClientSession | undefined;
   let response: EveMessageResponse | undefined;
 
   try {
     const inputResponses = input.responses
       ? toEveInputResponses(input.responses)
       : undefined;
-    response = await session.send({
-      ...(input.prompt ? { message: input.prompt } : {}),
-      ...(inputResponses ? { inputResponses } : {}),
+    const turnOptions = {
+      ...readEveTurnOptions(config),
       signal: controller.signal,
-    });
+    };
+
+    if (initialState) {
+      session = client.sessions.attach(initialState.sessionId, {
+        streamIndex: initialState.streamIndex,
+      });
+      response = inputResponses
+        ? await session.respond(inputResponses, turnOptions)
+        : await session.send(input.prompt ?? "", turnOptions);
+    } else {
+      const created = await client.sessions.create({
+        message: input.prompt ?? "",
+        signal: controller.signal,
+        ...readEveTurnOptions(config),
+      });
+      session = created.session;
+      response = created.response;
+    }
 
     for await (const rawEvent of response) {
       rawEvents.push(rawEvent);
-      for (const event of projectEveStreamEvent(rawEvent)) {
+      for (const event of projectEveStreamEvent(rawEvent, projectionState)) {
         emitEvent(events, event, options.onEvent);
       }
     }
   } catch (caught) {
     const reason = formatCaughtError(caught);
     emitErrorOnce(events, reason, options.onEvent);
-    const continuation = encodeEveContinuation(session.state);
+    const continuation = session
+      ? encodeEveContinuation(session.state)
+      : undefined;
 
     return {
       status: "failed",
       events,
       reason,
-      ...(response?.sessionId ? { sessionId: response.sessionId } : {}),
+      ...(response ? { sessionId: response.sessionId } : {}),
       ...(continuation ? { continuation } : {}),
     };
   } finally {
@@ -214,7 +267,7 @@ export async function runEveAgent(
       status: "failed",
       events,
       reason,
-      sessionId: response.sessionId,
+      sessionId: session.state.sessionId,
       ...(continuation ? { continuation } : {}),
     };
   }
@@ -225,7 +278,7 @@ export async function runEveAgent(
       status: "failed",
       events,
       reason: projected.reason,
-      sessionId: response.sessionId,
+      sessionId: session.state.sessionId,
       ...(continuation ? { continuation } : {}),
     };
   }
@@ -242,7 +295,7 @@ export async function runEveAgent(
     status: projected.status,
     events,
     output: projected.output,
-    sessionId: response.sessionId,
+    sessionId: session.state.sessionId,
     ...(continuation ? { continuation } : {}),
   };
 }
@@ -250,8 +303,6 @@ export async function runEveAgent(
 function createEveClient(host: string, config: EveAgentConfig): EveClient {
   return new Client({
     host,
-    maxReconnectAttempts: config.maxReconnectAttempts,
-    preserveCompletedSessions: true,
     redirect: "error",
     ...(config.serviceToken
       ? {
@@ -260,7 +311,7 @@ function createEveClient(host: string, config: EveAgentConfig): EveClient {
           },
         }
       : {}),
-  });
+  }) as EveClient;
 }
 
 function createFailedResult(
