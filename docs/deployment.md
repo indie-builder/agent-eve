@@ -35,7 +35,7 @@ Compose 是本地单机拓扑，固定的宿主机端口方便开发。生产部
 - Runtime：模型 API Key、provider URL、模型与 token 预算、Toolbox URL、服务 token、Workflow 状态配置。
 - Toolbox：数据库连接凭证；业务数据库权限留在此服务。
 
-`EVE_AGENT_SERVICE_TOKEN` 在 API/Worker 与 runtime 配置相同高熵值。production 禁用本地开发认证回退；缺少 token 时远程调用失败关闭。`ANTHROPIC_*` 是 Kimi Anthropic-compatible provider 配置，属于 runtime，不代表启用了 Claude Agent SDK。
+`EVE_AGENT_SERVICE_TOKEN` 在 API/Worker 与 runtime 配置相同高熵值。production 禁用本地开发认证回退；缺少 token 时远程调用失败关闭。`ANTHROPIC_*` 是 Anthropic Messages provider 配置，属于 runtime，不代表启用了 Claude Agent SDK。
 
 ## 会话持久化与扩容
 

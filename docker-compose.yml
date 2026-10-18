@@ -136,6 +136,8 @@ services:
 
   runtime:
     <<: *app-service
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     build:
       context: .
       target: runtime
@@ -148,8 +150,9 @@ services:
       WORKFLOW_POSTGRES_MAX_POOL_SIZE: ${WORKFLOW_POSTGRES_MAX_POOL_SIZE:-10}
       TOOLBOX_URL: http://toolbox:15000
       ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
-      ANTHROPIC_BASE_URL: ${ANTHROPIC_BASE_URL:-https://api.kimi.com/coding/}
-      EVE_AGENT_MODEL: ${EVE_AGENT_MODEL:-kimi-for-coding}
+      ANTHROPIC_BASE_URL: ${ANTHROPIC_DOCKER_BASE_URL:-http://host.docker.internal:3425/v1}
+      EVE_AGENT_MODEL: ${EVE_AGENT_MODEL:-group/flash}
+      EVE_MAX_OUTPUT_TOKENS: ${EVE_MAX_OUTPUT_TOKENS:-1024}
       EVE_AGENT_SERVICE_TOKEN: ${EVE_AGENT_SERVICE_TOKEN:-}
       EVE_MODEL_CONTEXT_WINDOW_TOKENS: ${EVE_MODEL_CONTEXT_WINDOW_TOKENS:-128000}
       EVE_COMPACTION_THRESHOLD: ${EVE_COMPACTION_THRESHOLD:-0.75}

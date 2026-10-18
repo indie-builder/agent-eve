@@ -1,20 +1,26 @@
 import { createAnthropic } from "@ai-sdk/anthropic";
-import type { LanguageModel } from "ai";
+import {
+  defaultSettingsMiddleware,
+  wrapLanguageModel,
+  type LanguageModel,
+} from "ai";
 import { readEveAgentModel } from "@agent-template/agent-eve/config";
 
 export const defaultEveModelContextWindowTokens = 128_000;
 export const defaultEveMaxInputTokensPerSession = 1_000_000;
 export const defaultEveMaxOutputTokensPerSession = 100_000;
 export const defaultEveCompactionThreshold = 0.75;
+export const defaultEveAnthropicBaseURL = "http://127.0.0.1:3425/v1";
+export const defaultEveMaxOutputTokens = 1024;
 
 export function readEveAnthropicBaseURL(
   input: Record<string, unknown>,
-): string | undefined {
+): string {
   if (
     typeof input.ANTHROPIC_BASE_URL !== "string" ||
     input.ANTHROPIC_BASE_URL.length === 0
   ) {
-    return undefined;
+    return defaultEveAnthropicBaseURL;
   }
 
   return input.ANTHROPIC_BASE_URL.replace(/\/$/, "").endsWith("/v1")
@@ -36,10 +42,21 @@ export function createEveAnthropicModel(
         : undefined;
   const anthropic = createAnthropic({
     ...(authToken ? { apiKey: authToken } : {}),
-    ...(baseURL ? { baseURL } : {}),
+    baseURL,
+    headers: { "anthropic-version": "2023-06-01" },
   });
 
-  return anthropic(readEveAgentModel(input));
+  return wrapLanguageModel({
+    model: anthropic(readEveAgentModel(input)),
+    middleware: defaultSettingsMiddleware({
+      settings: {
+        maxOutputTokens: readPositiveInteger(
+          input.EVE_MAX_OUTPUT_TOKENS,
+          defaultEveMaxOutputTokens,
+        ),
+      },
+    }),
+  });
 }
 
 export function readEveAgentRuntimeLimits(input: Record<string, unknown>) {

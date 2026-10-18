@@ -111,13 +111,13 @@ describe("Eve authored surface", () => {
   it("normalizes Anthropic-compatible base URL for the AI SDK provider", () => {
     expect(
       readEveAnthropicBaseURL({
-        ANTHROPIC_BASE_URL: "https://api.kimi.com/coding/",
+        ANTHROPIC_BASE_URL: "http://127.0.0.1:3425/",
       }),
-    ).toBe("https://api.kimi.com/coding/v1");
+    ).toBe("http://127.0.0.1:3425/v1");
     expect(
       readEveAnthropicBaseURL({
-        ANTHROPIC_BASE_URL: "https://api.kimi.com/coding/v1",
+        ANTHROPIC_BASE_URL: "http://127.0.0.1:3425/v1",
       }),
-    ).toBe("https://api.kimi.com/coding/v1");
+    ).toBe("http://127.0.0.1:3425/v1");
   });
 });

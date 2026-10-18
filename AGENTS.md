@@ -83,7 +83,7 @@ pnpm db:seed
 - Web、API、Worker、Eve runtime、Toolbox 独立进程和镜像，分别部署与扩缩容；模型凭证只配置在 runtime，API/Worker 仅持有服务连接凭证。
 - API/Worker 只通过 `@agent-template/agent` 调用 Eve HTTP client，不嵌入模型执行；`apps/runtime` 独占 authored surface 和 Workflow 状态。
 - Agent runtime 统一使用 Eve；按 Eve 当前最佳实践实现，删除 runtime 选择器与旧技术栈兼容分支，不维护双轨实现。
-- Kimi Code 接入 Eve 使用 Anthropic-compatible 协议；API Key 只放本地 `.env` 或部署环境变量。
+- AI 请求统一使用 Anthropic Messages 协议（`POST /v1/messages`、`x-api-key`、`anthropic-version: 2023-06-01`），默认模型 `group/flash`；API Key 只放本地 `.env` 或部署环境变量。
 - `TOOLBOX_URL` 是 Agent runtime 自己持有的 MCP 连接地址；不再维护平台级 MCP registry 或 `TOOLBOX_TOOLSET`。
 - Eve runtime 在 `apps/runtime/agent/connections/toolbox.ts` 维护 filesystem-first MCP connection 和 allowlist。
 - 新增或删除 Toolbox Tool 时，必须同步更新 Eve MCP connection 的 allowlist；不要在 `packages/shared` 或 `apps/api` 重新抽平台级 MCP module。

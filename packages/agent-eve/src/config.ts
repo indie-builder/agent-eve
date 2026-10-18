@@ -1,4 +1,4 @@
-export const defaultEveAgentModel = "kimi-for-coding";
+export const defaultEveAgentModel = "group/flash";
 
 export function readEveAgentModel(input: Record<string, unknown>): string {
   return typeof input.EVE_AGENT_MODEL === "string" &&

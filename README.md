@@ -85,19 +85,24 @@ packages/
 
 Eve 在 `apps/runtime/agent/connections/toolbox.ts` 维护 MCP connection 和 allowlist，从 `TOOLBOX_URL` 读取 endpoint。稳定指令位于 `agent/instructions.md`，业务 Skill 位于 `agent/skills/`；API 和 Web 不维护 MCP registry 或代理 tool/resource 请求。
 
-Kimi Code 通过 Anthropic-compatible 协议接入 Eve Agent runtime：
+Eve 通过 Anthropic Messages 协议接入本地 AI 服务：
 
 ```bash
-ANTHROPIC_API_KEY=<your-kimi-api-key>
-ANTHROPIC_BASE_URL=https://api.kimi.com/coding/
-ANTHROPIC_MODEL=kimi-for-coding
-EVE_AGENT_MODEL=kimi-for-coding
+ANTHROPIC_API_KEY=<your-api-key>
+ANTHROPIC_BASE_URL=http://127.0.0.1:3425/v1
+ANTHROPIC_MODEL=group/flash
+EVE_AGENT_MODEL=group/flash
+EVE_MAX_OUTPUT_TOKENS=1024
 EVE_AGENT_HOST=http://localhost:13010
 EVE_AGENT_SERVICE_TOKEN=
 ```
 
+本地运行 Eve 时，将 AI 配置放入 `apps/runtime/.env.local`；Eve CLI 从自己的应用目录读取环境文件。根 `.env` 用于 Compose 和 API/Worker，密钥不提交。默认请求为 `POST /v1/messages`，使用 `x-api-key`、`anthropic-version: 2023-06-01` 和 JSON 请求体；单次输出上限由 `EVE_MAX_OUTPUT_TOKENS` 控制。
+
+Compose 通过 `ANTHROPIC_DOCKER_BASE_URL` 访问宿主机服务，默认 `http://host.docker.internal:3425/v1`，不要在容器内使用 `127.0.0.1` 指向宿主机。Linux 宿主机的代理需监听容器可达地址。
+
 项目只使用 Eve，不再配置 runtime selector。API/Worker 不依赖模型 API Key；`/health` 显示 Eve client 连接配置状态，模型凭证由独立 runtime 持有。
 
-Eve 使用 opaque continuation 支持多轮续接和结构化 HITL，并把 Tool、subagent、compaction 和 token usage 转换为统一运行事件。Eve 非 loopback 的 `EVE_AGENT_HOST`（包括 Docker Compose 中的 `http://eve-agent:13010`）必须为 API/Worker 和 Eve Agent 配置同一个高熵 `EVE_AGENT_SERVICE_TOKEN`；production 不启用 `localDev()` Host fallback，缺少凭证时会 fail closed。Eve 说明见 [packages/agent-eve/README.md](packages/agent-eve/README.md)。
+Eve 使用 opaque continuation 支持多轮续接和结构化 HITL，并把 Tool、subagent、compaction 和 token usage 转换为统一运行事件。Eve 非 loopback 的 `EVE_AGENT_HOST`（包括 Docker Compose 中的 `http://runtime:13010`）必须为 API/Worker 和 Eve Agent 配置同一个高熵 `EVE_AGENT_SERVICE_TOKEN`；production 不启用 `localDev()` Host fallback，缺少凭证时会 fail closed。Eve 说明见 [packages/agent-eve/README.md](packages/agent-eve/README.md)。
 
 服务独立部署、镜像 target、配置归属与扩容约束见 [部署架构](docs/deployment.md)。

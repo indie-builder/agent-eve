@@ -14,21 +14,22 @@
 
 ## 运行配置
 
-| 变量                                   |                   默认值 | 用途                                               |
-| -------------------------------------- | -----------------------: | -------------------------------------------------- |
-| `EVE_AGENT_MODEL` / `ANTHROPIC_MODEL`  |        `kimi-for-coding` | authored surface 模型名                            |
-| `ANTHROPIC_BASE_URL`                   |                        - | Anthropic-compatible endpoint                      |
-| `ANTHROPIC_API_KEY`                    |                        - | provider 凭证                                      |
-| `EVE_AGENT_SERVICE_TOKEN`              |                        - | API/Worker 到 Eve channel 的服务 token             |
-| `TOOLBOX_URL`                          | `http://localhost:15000` | Toolbox endpoint                                   |
-| `EVE_MODEL_CONTEXT_WINDOW_TOKENS`      |                 `128000` | 未进入 Gateway catalog 的 context window           |
-| `EVE_COMPACTION_THRESHOLD`             |                   `0.75` | durable context compaction 比例                    |
-| `EVE_MAX_INPUT_TOKENS_PER_SESSION`     |                `1000000` | durable session 累计输入 token 上限                |
-| `EVE_MAX_OUTPUT_TOKENS_PER_SESSION`    |                 `100000` | durable session 累计输出 token 上限                |
-| `WORKFLOW_POSTGRES_URL`                |           `DATABASE_URL` | Workflow world PostgreSQL 连接串；生产必须显式设置 |
-| `WORKFLOW_POSTGRES_WORKER_CONCURRENCY` |                     `50` | 每副本并发 step 执行数                             |
-| `WORKFLOW_POSTGRES_MAX_POOL_SIZE`      |                     `10` | world 内部 `pg.Pool` 上限                          |
-| `PORT`                                 |                  `13010` | Eve 监听端口；world 用同一端口回调 loopback        |
+| 变量                                   |                     默认值 | 用途                                               |
+| -------------------------------------- | -------------------------: | -------------------------------------------------- |
+| `EVE_AGENT_MODEL` / `ANTHROPIC_MODEL`  |              `group/flash` | authored surface 模型名                            |
+| `ANTHROPIC_BASE_URL`                   | `http://127.0.0.1:3425/v1` | Anthropic Messages endpoint                        |
+| `EVE_MAX_OUTPUT_TOKENS`                |                     `1024` | 单次模型请求的 max_tokens                          |
+| `ANTHROPIC_API_KEY`                    |                          - | provider 凭证                                      |
+| `EVE_AGENT_SERVICE_TOKEN`              |                          - | API/Worker 到 Eve channel 的服务 token             |
+| `TOOLBOX_URL`                          |   `http://localhost:15000` | Toolbox endpoint                                   |
+| `EVE_MODEL_CONTEXT_WINDOW_TOKENS`      |                   `128000` | 未进入 Gateway catalog 的 context window           |
+| `EVE_COMPACTION_THRESHOLD`             |                     `0.75` | durable context compaction 比例                    |
+| `EVE_MAX_INPUT_TOKENS_PER_SESSION`     |                  `1000000` | durable session 累计输入 token 上限                |
+| `EVE_MAX_OUTPUT_TOKENS_PER_SESSION`    |                   `100000` | durable session 累计输出 token 上限                |
+| `WORKFLOW_POSTGRES_URL`                |             `DATABASE_URL` | Workflow world PostgreSQL 连接串；生产必须显式设置 |
+| `WORKFLOW_POSTGRES_WORKER_CONCURRENCY` |                       `50` | 每副本并发 step 执行数                             |
+| `WORKFLOW_POSTGRES_MAX_POOL_SIZE`      |                       `10` | world 内部 `pg.Pool` 上限                          |
+| `PORT`                                 |                    `13010` | Eve 监听端口；world 用同一端口回调 loopback        |
 
 不要设置 `WORKFLOW_POSTGRES_APPLICATION_MANAGED_SHUTDOWN`、`WORKFLOW_POSTGRES_INVOKE` 或 `WORKFLOW_LOCAL_BASE_URL`：Eve 自己管理进程生命周期，queue 直接回调 loopback `PORT`。
 
