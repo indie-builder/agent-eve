@@ -28,6 +28,13 @@
 - 不让 Fastify route 直接知道 Redis URL、BullMQ `Queue.add` 或 queue close 细节。
 - 不从 request payload 选择或覆盖 Agent runtime；runtime 固定为 `eve`。
 
+## HTTP类型与校验
+
+- 统一使用官方 `@fastify/type-provider-zod`；bootstrap注册validator/serializer，每个route module使用 `FastifyPluginAsyncZod`，从shared Zod schema推导请求与响应类型。
+- 请求体在 `schema.body` 声明，普通JSON响应在 `schema.response` 声明；校验错误统一返回400，内部异常和响应契约错误保留500。应用公共入口仍校验非HTTP调用方输入。
+- Chat SSE只声明输入schema，保持stream编码，不套普通JSON response serializer。业务schema继续放shared，不另建TypeBox/JSON Schema副本。
+- Fastify相关改动使用项目已安装的 `fastify-best-practices`；具体Zod Provider API以当前官方包文档为准。
+
 ## 健康检查
 
 `GET /health` 必须快速返回。PostgreSQL 或 Redis 不可用时应返回 `degraded`，不能让请求长时间挂起。

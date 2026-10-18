@@ -5,7 +5,7 @@
 ## 技术栈
 
 - 前端：pnpm + TypeScript 7 + Next.js + React + Tailwind CSS + shadcn/ui + Vitest
-- 后端：TypeScript 7 + Fastify + Prisma + PostgreSQL + Redis + BullMQ + MCP Toolbox + Eve + Zod + Pino + Vitest
+- 后端：TypeScript 7 + Fastify + 官方 Zod Type Provider + Prisma + PostgreSQL + Redis + BullMQ + MCP Toolbox + Eve + Pino + Vitest
 - 工程化：pnpm Workspace + Turborepo + Oxlint + Oxfmt + tsdown / Rolldown
 - 浏览器回归：TesterArmy e2e + Chromium（Web engine 基于 Playwright）
 

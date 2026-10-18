@@ -48,19 +48,19 @@ Web 自动在 `localhost:13020` 启动，fixtures 按测试监听 `127.0.0.1:140
 
 ## 精简结果与必要例外
 
-原有25个Vitest文件、89个展开用例，收敛为**13个文件、54个用例**。移除两个没有必要保留测试的package的Vitest依赖、脚本和配置；没有使用pass-with-no-tests或skip掩盖测试删除。
+原有25个Vitest文件、89个展开用例，收敛为**13个文件、55个用例**。移除两个没有必要保留测试的package的Vitest依赖、脚本和配置；没有使用pass-with-no-tests或skip掩盖测试删除。
 
-| 范围                                       | 处理与保留理由                                                                                                             |
-| ------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------- |
-| API原路由/health/job成功与continuation测试 | 迁入e2e真实HTTP和浏览器流程，删除inject重复；底层只留health故障聚合、内部故障500分类、queue生命周期（含入队失败close）4项  |
-| Web agent-client/stack                     | happy path、HITL与重试由e2e验收；删静态stack断言和无调用方的submitAgentJob，保留网络/SSE error、截断流、UTF-8按字节分块3项 |
-| UI/Logger                                  | 删除class合并和Pino名称等简单库行为测试，同时移除空runner配置                                                              |
-| Shared                                     | 5个文件集中为contracts.test.ts；删除合法输入回显，保留非法run输入/continuation/Redis URL等5项                              |
-| Agent/Eve adapter                          | 集中protocol.test.ts，保留非法token、HITL映射/敏感信息不泄漏、失败优先级、流投影、信任规则及client调用，合计19项           |
-| Runtime                                    | 删除latest依赖策略、数组存在性、重复URL归一化检查；保留Messages协议、危险工具禁用、sandbox/telemetry、production认证等15项 |
-| Toolbox                                    | 4个产物文案测试替换为tools.yaml、runtime allowlist和Skill工具引用的一致性契约1项                                           |
-| Worker                                     | 配置校验集中到process.test.ts，保留失败/waiting语义、信号处理与只关闭一次5项                                               |
-| DB fixture                                 | 保留数据规模确定性和金额不变量2项，删除默认URL常量测试                                                                     |
+| 范围                                       | 处理与保留理由                                                                                                                                   |
+| ------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------ |
+| API原路由/health/job成功与continuation测试 | 迁入e2e真实HTTP和浏览器流程，删除inject重复；底层只留health故障聚合、内部故障500分类、JSON响应契约/字段泄漏、queue生命周期（含入队失败close）5项 |
+| Web agent-client/stack                     | happy path、HITL与重试由e2e验收；删静态stack断言和无调用方的submitAgentJob，保留网络/SSE error、截断流、UTF-8按字节分块3项                       |
+| UI/Logger                                  | 删除class合并和Pino名称等简单库行为测试，同时移除空runner配置                                                                                    |
+| Shared                                     | 5个文件集中为contracts.test.ts；删除合法输入回显，保留非法run输入/continuation/Redis URL等5项                                                    |
+| Agent/Eve adapter                          | 集中protocol.test.ts，保留非法token、HITL映射/敏感信息不泄漏、失败优先级、流投影、信任规则及client调用，合计19项                                 |
+| Runtime                                    | 删除latest依赖策略、数组存在性、重复URL归一化检查；保留Messages协议、危险工具禁用、sandbox/telemetry、production认证等15项                       |
+| Toolbox                                    | 4个产物文案测试替换为tools.yaml、runtime allowlist和Skill工具引用的一致性契约1项                                                                 |
+| Worker                                     | 配置校验集中到process.test.ts，保留失败/waiting语义、信号处理与只关闭一次5项                                                                     |
+| DB fixture                                 | 保留数据规模确定性和金额不变量2项，删除默认URL常量测试                                                                                           |
 
 选择是否写底层测试的标准是：该保护无法通过少量稳定用户/API流程有效验证。不要把每个合法schema、getter或简单委托都变成单测，也不为减少数字把无关场景硬合成一个长测试。
 

@@ -1,4 +1,5 @@
-import type { FastifyPluginAsync } from "fastify";
+import type { FastifyPluginAsyncZod } from "@fastify/type-provider-zod";
+import { HealthStatusSchema } from "@agent-template/shared";
 import { getHealth, type HealthAdapters } from "../application/get-health.js";
 
 type HealthRoutesOptions = {
@@ -6,9 +7,11 @@ type HealthRoutesOptions = {
   adapters: HealthAdapters;
 };
 
-export const healthRoutes: FastifyPluginAsync<HealthRoutesOptions> = async (
+export const healthRoutes: FastifyPluginAsyncZod<HealthRoutesOptions> = async (
   app,
   { env, adapters },
 ) => {
-  app.get("/health", async () => getHealth(env, adapters));
+  app.get("/health", { schema: { response: { 200: HealthStatusSchema } } }, async () =>
+    getHealth(env, adapters),
+  );
 };

@@ -61,6 +61,10 @@ packages/
 
 这一划分把改变集中在对应module，提高locality；现有queue/health/runtime seam继续支持生产与测试adapter，保留检错leverage，不增加通用DI容器。
 
+## HTTP契约
+
+Fastify bootstrap统一注册官方 `@fastify/type-provider-zod` 的validator/serializer；route module使用 `FastifyPluginAsyncZod`，直接引用shared schema声明body和JSON response。请求校验错误统一400，内部配置和响应序列化错误维持500。Chat SSE只声明body，流事件仍走专门编码。公开应用入口保留对非HTTP输入的校验。400响应保持中文 `message`，`issues` 使用Provider的Fastify校验格式（`keyword`、`instancePath`、`schemaPath`、`params`），不再是原生Zod issue结构。
+
 ## 数据库访问与repository
 
 数据库并非所有文件都放进一个repository目录：连接、schema/migrations、测试数据、业务查询有不同归属。
