@@ -7,13 +7,7 @@
     },
     "build": {
       "dependsOn": ["^build"],
-      "outputs": [
-        ".next/**",
-        "dist/**",
-        ".output/**",
-        ".eve/compile/**",
-        ".eve/discovery/**"
-      ],
+      "outputs": [".next/**", "dist/**", ".output/**", ".eve/compile/**", ".eve/discovery/**"],
       "env": [
         "NEXT_PUBLIC_API_BASE_URL",
         "ANTHROPIC_BASE_URL",
@@ -35,6 +29,7 @@
     },
     "lint": {
       "dependsOn": ["^lint"],
+      "inputs": ["$TURBO_DEFAULT$", "$TURBO_ROOT$/.oxlintrc.json"],
       "outputs": []
     },
     "typecheck": {

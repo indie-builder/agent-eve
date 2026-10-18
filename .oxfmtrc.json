@@ -1,0 +1,18 @@
+{
+  "$schema": "./node_modules/oxfmt/configuration_schema.json",
+  "sortImports": false,
+  "sortPackageJson": false,
+  "ignorePatterns": [
+    ".agents/**",
+    ".codex/**",
+    ".claude/**",
+    ".scratch/**",
+    "pnpm-lock.yaml",
+    "**/dist/**",
+    "**/generated/**",
+    "**/.next/**",
+    "**/.eve/**",
+    "**/.output/**",
+    "**/coverage/**"
+  ]
+}

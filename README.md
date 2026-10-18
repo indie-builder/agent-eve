@@ -6,7 +6,7 @@
 
 - 前端：pnpm + TypeScript 7 + Next.js + React + Tailwind CSS + shadcn/ui + Vitest
 - 后端：TypeScript 7 + Fastify + Prisma + PostgreSQL + Redis + BullMQ + MCP Toolbox + Eve + Zod + Pino + Vitest
-- 工程化：pnpm Workspace + Turborepo
+- 工程化：pnpm Workspace + Turborepo + Oxlint + Oxfmt + tsdown / Rolldown
 
 开发环境使用 Node.js 26.12.0（`.nvmrc`）和 `package.json` 声明的 pnpm 版本。使用 nvm 时先运行 `nvm install && nvm use`。依赖跟进最新稳定版；大版本升级直接迁移代码，不保留旧版双轨实现。
 
@@ -14,8 +14,7 @@
 
 项目默认使用 TypeScript 7 原生编译器：`pnpm exec tsc` 和各 workspace 的
 `typecheck`、直接 `tsc` 构建均执行 TS7。TypeScript 7.0 尚未提供稳定的
-JavaScript API，因此同时保留 TypeScript 6 兼容包，供 `typescript-eslint`、
-Next.js language-service plugin 等工具使用。
+JavaScript API，因此同时保留 TypeScript 6 兼容包，供 Next.js language-service plugin 等工具使用。
 
 ```bash
 pnpm exec tsc --version   # 默认编译器：TypeScript 7

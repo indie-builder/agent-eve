@@ -14,18 +14,17 @@
     "db:generate": "pnpm --filter @agent-template/db db:generate",
     "db:migrate": "pnpm --filter @agent-template/db db:migrate",
     "db:seed": "pnpm --filter @agent-template/db db:seed",
-    "format": "prettier --write ."
+    "format": "oxfmt --write .",
+    "format:check": "oxfmt --check ."
   },
   "devDependencies": {
-    "@eslint/js": "^10.0.1",
     "@types/node": "^26.6.5",
     "@typescript/native": "npm:typescript@^7.0.2",
-    "eslint": "^10.13.0",
-    "prettier": "^3.9.10",
-    "tsup": "^9.0.0",
+    "oxfmt": ">=0.73.0 <1.0.0",
+    "oxlint": "^1.88.0",
+    "tsdown": ">=0.23.1 <1.0.0",
     "tsx": "^4.23.15",
     "turbo": "^2.11.9",
-    "typescript": "npm:@typescript/typescript6@^6.0.2",
-    "typescript-eslint": "^8.71.2"
+    "typescript": "npm:@typescript/typescript6@^6.0.2"
   }
 }

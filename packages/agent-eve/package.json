@@ -8,8 +8,8 @@
     "./trust-policy": "./src/trust-policy.ts"
   },
   "scripts": {
-    "build": "tsup src/index.ts --format esm",
-    "lint": "eslint src",
+    "build": "tsdown src/index.ts --format esm --no-dts",
+    "lint": "oxlint --deny-warnings src",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "test": "vitest run"
   },

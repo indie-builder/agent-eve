@@ -14,8 +14,9 @@ TypeScript Agent 平台模板：`apps/` 放运行进程，`packages/` 放可复�
 - 依赖声明锁住所采用的大版本，不限制主动升级大版本：优先 `^x.y.z`；`0.x` 使用 `>=0.y.z <1.0.0`。
 - 例外：`packages/agent-eve` 的官方 `eve` 依赖按用户要求使用 `latest`。
 - TypeScript CLI 默认使用 TS7 原生编译器；`typescript` 包名保留为
-  `@typescript/typescript6` 兼容 API，供 `typescript-eslint`、Next.js plugin
+  `@typescript/typescript6` 兼容 API，供 Next.js plugin
   等工具使用。在 TS7 JavaScript API 和相关生态完成适配前不要删除兼容层。
+- 工具链统一使用 Oxlint（lint）、Oxfmt（format）和 tsdown / Rolldown（独立 package 打包）；Next.js 与 Eve 保留各自官方构建流程，类型检查继续使用 TS7。
 - 共享代码优先放 `packages/`；应用层只编排运行流程。
 - 不把业务假设写死进模板；模板保持可复用、低耦合。
 - 修改后按影响范围运行对应 package 的 `lint`、`typecheck`、`test`。

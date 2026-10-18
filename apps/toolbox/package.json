@@ -3,8 +3,8 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "build": "tsup src/generate-toolbox-business-skills.ts --format esm",
-    "lint": "eslint src",
+    "build": "tsdown src/generate-toolbox-business-skills.ts --format esm --no-dts",
+    "lint": "oxlint --deny-warnings src",
     "skills:generate": "tsx src/generate-toolbox-business-skills.ts",
     "test": "vitest run",
     "typecheck": "tsc -p tsconfig.json --noEmit"

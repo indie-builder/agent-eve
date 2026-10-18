@@ -1,9 +1,6 @@
 import { describe, expect, it } from "vitest";
-import {
-  getAgentRuntimeStateFromEnv,
-  parseAgentRuntimeEnv,
-  runAgent,
-} from "./index.js";
+import { ZodError } from "zod";
+import { getAgentRuntimeStateFromEnv, parseAgentRuntimeEnv, runAgent } from "./index.js";
 
 describe("Agent runtime seam", () => {
   it("reports Eve as the only Agent runtime", () => {
@@ -73,7 +70,7 @@ describe("Agent runtime seam", () => {
   });
 
   it("rejects invalid Agent run input at the Agent runtime seam", async () => {
-    await expect(runAgent({ prompt: "" }, {})).rejects.toThrow();
+    await expect(runAgent({ prompt: "" }, {})).rejects.toThrow(ZodError);
   });
 
   it("passes opaque continuation and input responses to Eve", async () => {

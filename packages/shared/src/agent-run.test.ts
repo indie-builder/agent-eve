@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { ZodError } from "zod";
 import { AgentRunInputSchema, AgentRunResultSchema } from "./agent-run";
 
 describe("AgentRunResultSchema", () => {
@@ -97,6 +98,6 @@ describe("AgentRunResultSchema", () => {
         continuation: { token: "opaque-token" },
         responses: [{ requestId: "request-1", optionId: "a" }],
       }),
-    ).toThrow();
+    ).toThrow(ZodError);
   });
 });

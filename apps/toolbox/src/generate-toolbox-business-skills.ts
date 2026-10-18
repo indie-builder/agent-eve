@@ -1,10 +1,4 @@
-import {
-  mkdirSync,
-  mkdtempSync,
-  readFileSync,
-  rmSync,
-  writeFileSync,
-} from "node:fs";
+import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { execFileSync } from "node:child_process";
@@ -24,10 +18,7 @@ const businessSkills: BusinessSkill[] = [
     group: "ecommerce_sales_analytics",
     description:
       "Analyzes ecommerce revenue, refunds, net sales, buyers, and channel performance. Use when the user asks about sales trends, GMV, refunds, net sales, or channel comparison.",
-    tools: [
-      "summarize-ecommerce-sales-by-day",
-      "summarize-ecommerce-sales-by-channel",
-    ],
+    tools: ["summarize-ecommerce-sales-by-day", "summarize-ecommerce-sales-by-channel"],
     workflow: `1. 要求或确认不超过 31 天的 UTC \`[from, to)\` 时间窗。
 2. 先调用 \`summarize-ecommerce-sales-by-day\` 判断趋势和异常日期。
 3. 需要渠道归因时，再调用 \`summarize-ecommerce-sales-by-channel\`。
@@ -60,10 +51,7 @@ const businessSkills: BusinessSkill[] = [
     group: "ecommerce_fulfillment_operations",
     description:
       "Finds paid but unfulfilled ecommerce orders and supports fulfillment exception investigation. Use when the user asks about fulfillment backlog, waiting time, delayed orders, or operational exceptions.",
-    tools: [
-      "list-ecommerce-fulfillment-exceptions",
-      "get-ecommerce-order-detail",
-    ],
+    tools: ["list-ecommerce-fulfillment-exceptions", "get-ecommerce-order-detail"],
     workflow: `1. 要求或确认不超过 31 天的 UTC \`[from, to)\` 时间窗，并设置有界 \`limit\`。
 2. 调用 \`list-ecommerce-fulfillment-exceptions\` 获取已支付未履约订单。
 3. 将 \`to\` 解释为等待时长的参考时间，不要当作当前系统时间。
@@ -79,10 +67,10 @@ const toolboxExecutable = join(
   "node_modules/.bin",
   process.platform === "win32" ? "toolbox.cmd" : "toolbox",
 );
-const prettierExecutable = join(
+const formatterExecutable = join(
   repositoryRoot,
   "node_modules/.bin",
-  process.platform === "win32" ? "prettier.cmd" : "prettier",
+  process.platform === "win32" ? "oxfmt.cmd" : "oxfmt",
 );
 const generatedRoot = mkdtempSync(join(tmpdir(), "toolbox-business-skills-"));
 const installedSkillMarkdown: string[] = [];
@@ -127,7 +115,7 @@ try {
     installedSkillMarkdown.push(outputMarkdown);
   }
 
-  execFileSync(prettierExecutable, ["--write", ...installedSkillMarkdown], {
+  execFileSync(formatterExecutable, ["--write", ...installedSkillMarkdown], {
     cwd: repositoryRoot,
     stdio: "inherit",
   });
@@ -135,11 +123,7 @@ try {
   rmSync(generatedRoot, { force: true, recursive: true });
 }
 
-function adaptSkillMarkdown(
-  markdown: string,
-  workflow: string,
-  toolNames: string[],
-) {
+function adaptSkillMarkdown(markdown: string, workflow: string, toolNames: string[]) {
   const usageHeading = "\n## Usage\n";
   const scriptsHeading = "\n## Scripts\n";
   const usageIndex = markdown.indexOf(usageHeading);

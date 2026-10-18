@@ -6,7 +6,7 @@
     "dev": "next dev --port 13000",
     "start": "next start --hostname 0.0.0.0 --port 13000",
     "build": "next build",
-    "lint": "eslint app src",
+    "lint": "oxlint --deny-warnings app src",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "test": "vitest run"
   },

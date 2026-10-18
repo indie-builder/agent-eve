@@ -7,7 +7,7 @@
     "build": "eve build",
     "start": "node .output/server/index.mjs",
     "workflow:setup": "bootstrap",
-    "lint": "eslint src agent evals",
+    "lint": "oxlint --deny-warnings src agent evals",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "test": "vitest run",
     "info": "eve info --json",
