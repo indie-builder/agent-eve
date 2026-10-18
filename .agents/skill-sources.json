@@ -239,14 +239,6 @@
         "impeccable"
       ]
     },
-    "superpowers-zh@superpowers-zh": {
-      "scope": "project",
-      "source": "jnMetaCode/superpowers-zh",
-      "version": "1.7.14",
-      "skills": [
-        "chinese-commit-conventions"
-      ]
-    },
     "agentic-awesome-skills@agentic-awesome-skills": {
       "scope": "project",
       "source": "sickn33/agentic-awesome-skills",
