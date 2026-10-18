@@ -64,18 +64,13 @@ describe("Eve Agent runtime", () => {
       ),
     ).resolves.toEqual({
       status: "skipped",
-      reason:
-        "EVE_AGENT_SERVICE_TOKEN is required for a non-loopback Eve Agent host",
+      reason: "EVE_AGENT_SERVICE_TOKEN is required for a non-loopback Eve Agent host",
     });
   });
 
   it("parses model configuration for the runtime service", () => {
-    expect(readEveAgentModel({ ANTHROPIC_MODEL: "kimi-custom" })).toBe(
-      "kimi-custom",
-    );
-    expect(readEveAgentModel({ EVE_AGENT_MODEL: "eve-custom" })).toBe(
-      "eve-custom",
-    );
+    expect(readEveAgentModel({ ANTHROPIC_MODEL: "kimi-custom" })).toBe("kimi-custom");
+    expect(readEveAgentModel({ EVE_AGENT_MODEL: "eve-custom" })).toBe("eve-custom");
   });
 
   it("parses Eve client resilience settings", () => {
@@ -88,17 +83,12 @@ describe("Eve Agent runtime", () => {
       maxReconnectAttempts: 7,
       requestTimeoutMs: 45_000,
     });
-    expect(parseEveAgentConfig({}).maxReconnectAttempts).toBe(
-      defaultEveAgentMaxReconnectAttempts,
-    );
+    expect(parseEveAgentConfig({}).maxReconnectAttempts).toBe(defaultEveAgentMaxReconnectAttempts);
   });
 
   it("skips execution until an Eve Agent host is configured", async () => {
     await expect(
-      runEveAgent(
-        { prompt: "Summarize this template" },
-        parseEveAgentConfig({}),
-      ),
+      runEveAgent({ prompt: "Summarize this template" }, parseEveAgentConfig({})),
     ).resolves.toEqual({
       status: "skipped",
       reason: "EVE_AGENT_HOST is not configured",
@@ -299,9 +289,7 @@ describe("Eve Agent runtime", () => {
                     throw new Error("unexpected send");
                   },
                   async respond(responses) {
-                    expect(responses).toEqual([
-                      { requestId: "request-0", optionId: "approve" },
-                    ]);
+                    expect(responses).toEqual([{ requestId: "request-0", optionId: "approve" }]);
                     return responseOf("eve-session-1", streamed);
                   },
                 };

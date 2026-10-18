@@ -1,9 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { MessageStreamEvent } from "eve/client";
-import {
-  projectEveStreamEvent,
-  projectEveTurn,
-} from "./eve-turn-projection.js";
+import { projectEveStreamEvent, projectEveTurn } from "./eve-turn-projection.js";
 
 const meta = { at: "2026-10-18T00:00:00.000Z", id: "evt_1" };
 
@@ -135,12 +132,8 @@ describe("Eve turn projection", () => {
       },
     });
 
-    expect(projectEveStreamEvent(first, state)).toEqual([
-      { kind: "text", text: "Do" },
-    ]);
-    expect(projectEveStreamEvent(second, state)).toEqual([
-      { kind: "text", text: "Done" },
-    ]);
+    expect(projectEveStreamEvent(first, state)).toEqual([{ kind: "text", text: "Do" }]);
+    expect(projectEveStreamEvent(second, state)).toEqual([{ kind: "text", text: "Done" }]);
   });
 
   it("projects typed HITL requests without leaking tool input", () => {

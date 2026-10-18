@@ -12,7 +12,7 @@ export function createBullMqConnectionOptions(redisUrl: string): BullMqConnectio
   const options: BullMqConnectionOptions = {
     host: parsed.hostname,
     port: parsed.port ? Number(parsed.port) : 6379,
-    maxRetriesPerRequest: null
+    maxRetriesPerRequest: null,
   };
 
   if (parsed.username) {

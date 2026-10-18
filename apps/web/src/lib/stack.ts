@@ -12,5 +12,5 @@ export const stackItems = [
   "Zod",
   "Pino",
   "Vitest",
-  "Turborepo"
+  "Turborepo",
 ];

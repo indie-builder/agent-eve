@@ -6,19 +6,9 @@ import type {
   MessageStreamEvent,
   StreamReconnectPolicy,
 } from "eve/client";
-import type {
-  AgentContinuation,
-  AgentInputResponse,
-  AgentRunEvent,
-} from "@agent-template/shared";
-import {
-  decodeEveContinuation,
-  encodeEveContinuation,
-} from "./eve-continuation.js";
-import {
-  projectEveStreamEvent,
-  projectEveTurn,
-} from "./eve-turn-projection.js";
+import type { AgentContinuation, AgentInputResponse, AgentRunEvent } from "@agent-template/shared";
+import { decodeEveContinuation, encodeEveContinuation } from "./eve-continuation.js";
+import { projectEveStreamEvent, projectEveTurn } from "./eve-turn-projection.js";
 import { toEveInputResponses } from "./eve-input-responses.js";
 import { isLoopbackEveHost } from "./trust-policy.js";
 
@@ -27,16 +17,8 @@ export const defaultEveAgentRequestTimeoutMs = 120_000;
 
 export const EveAgentConfigSchema = z.object({
   host: z.string().url().optional(),
-  maxReconnectAttempts: z
-    .number()
-    .int()
-    .nonnegative()
-    .default(defaultEveAgentMaxReconnectAttempts),
-  requestTimeoutMs: z
-    .number()
-    .int()
-    .positive()
-    .default(defaultEveAgentRequestTimeoutMs),
+  maxReconnectAttempts: z.number().int().nonnegative().default(defaultEveAgentMaxReconnectAttempts),
+  requestTimeoutMs: z.number().int().positive().default(defaultEveAgentRequestTimeoutMs),
   serviceToken: z.string().min(1).optional(),
 });
 
@@ -93,15 +75,13 @@ type EveClientSession = {
 
 type EveClient = {
   readonly sessions: {
-    attach(
-      sessionId: string,
-      options?: { streamIndex?: number },
-    ): EveClientSession;
+    attach(sessionId: string, options?: { streamIndex?: number }): EveClientSession;
     create(input: {
       message: string;
       signal?: AbortSignal;
       streamReconnectPolicy?: StreamReconnectPolicy;
-    }): Promise<{ session: EveClientSession; response: EveMessageResponse }>;  };
+    }): Promise<{ session: EveClientSession; response: EveMessageResponse }>;
+  };
 };
 
 function readEveTurnOptions(config: EveAgentConfig): EveTurnOptions {
@@ -117,9 +97,7 @@ function readEveTurnOptions(config: EveAgentConfig): EveTurnOptions {
   };
 }
 
-export function parseEveAgentConfig(
-  input: Record<string, unknown>,
-): EveAgentConfig {
+export function parseEveAgentConfig(input: Record<string, unknown>): EveAgentConfig {
   return EveAgentConfigSchema.parse({
     host: readNonEmptyString(input.EVE_AGENT_HOST),
     maxReconnectAttempts: readNumber(
@@ -134,13 +112,9 @@ export function parseEveAgentConfig(
   });
 }
 
-export function getEveAgentRuntimeState(
-  config: EveAgentConfig,
-): EveAgentRuntimeState {
+export function getEveAgentRuntimeState(config: EveAgentConfig): EveAgentRuntimeState {
   return {
-    configured: Boolean(
-      config.host && (isLoopbackEveHost(config.host) || config.serviceToken),
-    ),
+    configured: Boolean(config.host && (isLoopbackEveHost(config.host) || config.serviceToken)),
     ...(config.host ? { host: config.host } : {}),
   };
 }
@@ -166,8 +140,7 @@ export async function runEveAgent(
   if (!isLoopbackEveHost(config.host) && !config.serviceToken) {
     return {
       status: "skipped",
-      reason:
-        "EVE_AGENT_SERVICE_TOKEN is required for a non-loopback Eve Agent host",
+      reason: "EVE_AGENT_SERVICE_TOKEN is required for a non-loopback Eve Agent host",
     };
   }
 
@@ -195,9 +168,7 @@ export async function runEveAgent(
   let response: EveMessageResponse | undefined;
 
   try {
-    const inputResponses = input.responses
-      ? toEveInputResponses(input.responses)
-      : undefined;
+    const inputResponses = input.responses ? toEveInputResponses(input.responses) : undefined;
     const turnOptions = {
       ...readEveTurnOptions(config),
       signal: controller.signal,
@@ -229,9 +200,7 @@ export async function runEveAgent(
   } catch (caught) {
     const reason = formatCaughtError(caught);
     emitErrorOnce(events, reason, options.onEvent);
-    const continuation = session
-      ? encodeEveContinuation(session.state)
-      : undefined;
+    const continuation = session ? encodeEveContinuation(session.state) : undefined;
 
     return {
       status: "failed",
@@ -271,11 +240,7 @@ export async function runEveAgent(
   }
 
   if (projected.output) {
-    emitEvent(
-      events,
-      { kind: "done", result: projected.output },
-      options.onEvent,
-    );
+    emitEvent(events, { kind: "done", result: projected.output }, options.onEvent);
   }
 
   return {
@@ -324,9 +289,7 @@ function emitErrorOnce(
   message: string,
   onEvent: ((event: AgentRunEvent) => void) | undefined,
 ) {
-  if (
-    !events.some((event) => event.kind === "error" && event.message === message)
-  ) {
+  if (!events.some((event) => event.kind === "error" && event.message === message)) {
     emitEvent(events, { kind: "error", message }, onEvent);
   }
 }

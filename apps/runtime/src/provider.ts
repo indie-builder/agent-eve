@@ -1,9 +1,5 @@
 import { createAnthropic } from "@ai-sdk/anthropic";
-import {
-  defaultSettingsMiddleware,
-  wrapLanguageModel,
-  type LanguageModel,
-} from "ai";
+import { defaultSettingsMiddleware, wrapLanguageModel, type LanguageModel } from "ai";
 import { readEveAgentModel } from "@agent-template/agent-eve/config";
 
 export const defaultEveModelContextWindowTokens = 128_000;
@@ -13,13 +9,8 @@ export const defaultEveCompactionThreshold = 0.75;
 export const defaultEveAnthropicBaseURL = "http://127.0.0.1:3425/v1";
 export const defaultEveMaxOutputTokens = 1024;
 
-export function readEveAnthropicBaseURL(
-  input: Record<string, unknown>,
-): string {
-  if (
-    typeof input.ANTHROPIC_BASE_URL !== "string" ||
-    input.ANTHROPIC_BASE_URL.length === 0
-  ) {
+export function readEveAnthropicBaseURL(input: Record<string, unknown>): string {
+  if (typeof input.ANTHROPIC_BASE_URL !== "string" || input.ANTHROPIC_BASE_URL.length === 0) {
     return defaultEveAnthropicBaseURL;
   }
 
@@ -28,16 +19,12 @@ export function readEveAnthropicBaseURL(
     : `${input.ANTHROPIC_BASE_URL.replace(/\/$/, "")}/v1`;
 }
 
-export function createEveAnthropicModel(
-  input: Record<string, unknown>,
-): LanguageModel {
+export function createEveAnthropicModel(input: Record<string, unknown>): LanguageModel {
   const baseURL = readEveAnthropicBaseURL(input);
   const authToken =
-    typeof input.ANTHROPIC_API_KEY === "string" &&
-    input.ANTHROPIC_API_KEY.length > 0
+    typeof input.ANTHROPIC_API_KEY === "string" && input.ANTHROPIC_API_KEY.length > 0
       ? input.ANTHROPIC_API_KEY
-      : typeof input.ANTHROPIC_AUTH_TOKEN === "string" &&
-          input.ANTHROPIC_AUTH_TOKEN.length > 0
+      : typeof input.ANTHROPIC_AUTH_TOKEN === "string" && input.ANTHROPIC_AUTH_TOKEN.length > 0
         ? input.ANTHROPIC_AUTH_TOKEN
         : undefined;
   const anthropic = createAnthropic({
@@ -61,10 +48,7 @@ export function createEveAnthropicModel(
 
 export function readEveAgentRuntimeLimits(input: Record<string, unknown>) {
   return {
-    compactionThreshold: readRatio(
-      input.EVE_COMPACTION_THRESHOLD,
-      defaultEveCompactionThreshold,
-    ),
+    compactionThreshold: readRatio(input.EVE_COMPACTION_THRESHOLD, defaultEveCompactionThreshold),
     maxInputTokensPerSession: readPositiveInteger(
       input.EVE_MAX_INPUT_TOKENS_PER_SESSION,
       defaultEveMaxInputTokensPerSession,
@@ -87,7 +71,5 @@ function readPositiveInteger(value: unknown, fallback: number) {
 
 function readRatio(value: unknown, fallback: number) {
   const parsed = typeof value === "number" ? value : Number(value);
-  return Number.isFinite(parsed) && parsed > 0 && parsed < 1
-    ? parsed
-    : fallback;
+  return Number.isFinite(parsed) && parsed > 0 && parsed < 1 ? parsed : fallback;
 }

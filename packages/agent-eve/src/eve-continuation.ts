@@ -8,19 +8,16 @@ const EveClientSessionStateSchema = z.object({
   streamIndex: z.number().int().nonnegative(),
 });
 
-export function encodeEveContinuation(
-  state: ClientSessionState,
-): AgentContinuation | undefined {
+export function encodeEveContinuation(state: ClientSessionState): AgentContinuation | undefined {
   const parsed = EveClientSessionStateSchema.safeParse(state);
   if (!parsed.success) {
     return undefined;
   }
 
   return {
-    token: `${continuationPrefix}${Buffer.from(
-      JSON.stringify(parsed.data),
-      "utf8",
-    ).toString("base64url")}`,
+    token: `${continuationPrefix}${Buffer.from(JSON.stringify(parsed.data), "utf8").toString(
+      "base64url",
+    )}`,
   };
 }
 

@@ -33,14 +33,7 @@ services:
   redis:
     image: redis:8.10.2-alpine
     restart: unless-stopped
-    command:
-      [
-        "redis-server",
-        "--appendonly",
-        "yes",
-        "--maxmemory-policy",
-        "noeviction",
-      ]
+    command: ["redis-server", "--appendonly", "yes", "--maxmemory-policy", "noeviction"]
     ports:
       - "16379:6379"
     volumes:
@@ -166,11 +159,7 @@ services:
     ports:
       - "13010:13010"
     healthcheck:
-      test:
-        [
-          "CMD-SHELL",
-          "wget -qO- http://127.0.0.1:13010/eve/v1/health >/dev/null",
-        ]
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:13010/eve/v1/health >/dev/null"]
       interval: 10s
       timeout: 3s
       retries: 10

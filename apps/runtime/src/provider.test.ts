@@ -1,9 +1,6 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { generateText } from "ai";
-import {
-  createEveAnthropicModel,
-  readEveAnthropicBaseURL,
-} from "./provider.js";
+import { createEveAnthropicModel, readEveAnthropicBaseURL } from "./provider.js";
 
 afterEach(() => vi.unstubAllGlobals());
 
@@ -13,9 +10,7 @@ describe("Anthropic Messages provider", () => {
     ["http://127.0.0.1:3425", "http://127.0.0.1:3425/v1"],
     ["http://127.0.0.1:3425/v1/", "http://127.0.0.1:3425/v1"],
   ])("normalizes base URL %s", (baseURL, expected) => {
-    expect(readEveAnthropicBaseURL({ ANTHROPIC_BASE_URL: baseURL })).toBe(
-      expected,
-    );
+    expect(readEveAnthropicBaseURL({ ANTHROPIC_BASE_URL: baseURL })).toBe(expected);
   });
 
   it.each([undefined, "2048"])(

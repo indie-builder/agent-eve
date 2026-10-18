@@ -14,9 +14,7 @@ describe("AgentRunEventSchema", () => {
       tool: "search",
       input: '{"q":"agentcn"}',
     });
-    expect(
-      AgentRunEventSchema.parse({ kind: "tool-result", tool: "search" }),
-    ).toEqual({
+    expect(AgentRunEventSchema.parse({ kind: "tool-result", tool: "search" })).toEqual({
       kind: "tool-result",
       tool: "search",
     });
@@ -33,23 +31,21 @@ describe("AgentRunEventSchema", () => {
   it("accepts error, artifact, and unknown events", () => {
     const artifacts = AgentRunEventSchema.parse({
       kind: "artifacts",
-      tabs: [
-        { id: "summary", label: "Summary", hint: "md", content: "# Done" },
-      ],
+      tabs: [{ id: "summary", label: "Summary", hint: "md", content: "# Done" }],
     });
 
-    expect(
-      AgentRunEventSchema.parse({ kind: "error", message: "failed" }),
-    ).toEqual({ kind: "error", message: "failed" });
+    expect(AgentRunEventSchema.parse({ kind: "error", message: "failed" })).toEqual({
+      kind: "error",
+      message: "failed",
+    });
     expect(artifacts).toEqual({
       kind: "artifacts",
-      tabs: [
-        { id: "summary", label: "Summary", hint: "md", content: "# Done" },
-      ],
+      tabs: [{ id: "summary", label: "Summary", hint: "md", content: "# Done" }],
     });
-    expect(
-      AgentRunEventSchema.parse({ kind: "unknown", text: "raw event" }),
-    ).toEqual({ kind: "unknown", text: "raw event" });
+    expect(AgentRunEventSchema.parse({ kind: "unknown", text: "raw event" })).toEqual({
+      kind: "unknown",
+      text: "raw event",
+    });
   });
 
   it("accepts Eve interactive and lifecycle events", () => {

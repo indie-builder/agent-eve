@@ -13,12 +13,10 @@ describe("Eve channel trust policy", () => {
     });
 
     expect(productionAuth).toHaveLength(2);
-    await expect(
-      Promise.resolve(productionAuth[0]?.(spoofedLocalRequest)),
-    ).resolves.toBeNull();
-    await expect(
-      Promise.resolve(productionAuth[0]?.(authenticatedRequest)),
-    ).resolves.toMatchObject({ principalType: "service" });
+    await expect(Promise.resolve(productionAuth[0]?.(spoofedLocalRequest))).resolves.toBeNull();
+    await expect(Promise.resolve(productionAuth[0]?.(authenticatedRequest))).resolves.toMatchObject(
+      { principalType: "service" },
+    );
     expect(createEveChannelAuth({ NODE_ENV: "development" })).toHaveLength(3);
   });
 });

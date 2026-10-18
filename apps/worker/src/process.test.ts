@@ -9,7 +9,7 @@ type AgentJob = { id?: string; name: string; data: AgentJobPayload };
 
 const payload: AgentJobPayload = {
   prompt: "Summarize this template",
-  requestedAt: "2026-06-26T00:00:00.000Z"
+  requestedAt: "2026-06-26T00:00:00.000Z",
 };
 
 const completedResult: AgentRunResult = {
@@ -17,7 +17,7 @@ const completedResult: AgentRunResult = {
   runtime: "eve",
   configured: true,
   status: "completed",
-  output: "Done"
+  output: "Done",
 };
 
 function createHarness(result: AgentRunResult) {
@@ -33,7 +33,7 @@ function createHarness(result: AgentRunResult) {
   const workerProcess = createAgentWorkerProcess({
     env: loadWorkerEnv({
       REDIS_URL: "redis://localhost:16379",
-      WORKER_CONCURRENCY: "3"
+      WORKER_CONCURRENCY: "3",
     }),
     logger: {
       info(data, message) {
@@ -41,7 +41,7 @@ function createHarness(result: AgentRunResult) {
       },
       error(data, message) {
         logs.push(["error", data, message]);
-      }
+      },
     },
     createWorker({ processJob, concurrency, onCompleted, onFailed }) {
       state.processJob = processJob;
@@ -52,12 +52,12 @@ function createHarness(result: AgentRunResult) {
       return {
         async close() {
           state.closed = true;
-        }
+        },
       };
     },
     async processJob() {
       return result;
-    }
+    },
   });
 
   return { workerProcess, logs, state };
@@ -68,7 +68,7 @@ describe("createAgentWorkerProcess", () => {
     const { workerProcess, logs, state } = createHarness(completedResult);
 
     await expect(
-      state.processJob?.({ id: "job-1", name: "agent.run", data: payload })
+      state.processJob?.({ id: "job-1", name: "agent.run", data: payload }),
     ).resolves.toEqual(completedResult);
     state.onCompleted?.({ id: "job-1", name: "agent.run", data: payload });
     state.onFailed?.(undefined, new Error("boom"));
@@ -76,29 +76,37 @@ describe("createAgentWorkerProcess", () => {
 
     expect(state.concurrency).toBe(3);
     expect(state.closed).toBe(true);
-    expect(logs[0]).toEqual(["info", { jobId: "job-1", jobName: "agent.run" }, "processing agent job"]);
+    expect(logs[0]).toEqual([
+      "info",
+      { jobId: "job-1", jobName: "agent.run" },
+      "processing agent job",
+    ]);
     expect(logs[1]).toEqual(["info", { jobId: "job-1" }, "agent job completed"]);
-    expect(logs[2]).toEqual(["error", { jobId: undefined, error: expect.any(Error) }, "agent job failed"]);
+    expect(logs[2]).toEqual([
+      "error",
+      { jobId: undefined, error: expect.any(Error) },
+      "agent job failed",
+    ]);
   });
 
   it("throws failed and skipped Agent runs so BullMQ does not mark them completed", async () => {
     const failed: AgentRunResult = {
       ...completedResult,
       status: "failed",
-      reason: "Eve transport exploded"
+      reason: "Eve transport exploded",
     };
     const skipped: AgentRunResult = {
       ...completedResult,
       configured: false,
       status: "skipped",
-      reason: "EVE_AGENT_HOST is not configured"
+      reason: "EVE_AGENT_HOST is not configured",
     };
 
     for (const result of [failed, skipped]) {
       const { state } = createHarness(result);
 
       await expect(
-        state.processJob?.({ id: "job-1", name: "agent.run", data: payload })
+        state.processJob?.({ id: "job-1", name: "agent.run", data: payload }),
       ).rejects.toThrow(result.reason);
     }
   });
@@ -108,12 +116,12 @@ describe("createAgentWorkerProcess", () => {
       ...completedResult,
       status: "waiting",
       output: "请确认是否继续。",
-      continuation: { token: "opaque-token" }
+      continuation: { token: "opaque-token" },
     };
     const { state } = createHarness(waiting);
 
     await expect(
-      state.processJob?.({ id: "job-1", name: "agent.run", data: payload })
+      state.processJob?.({ id: "job-1", name: "agent.run", data: payload }),
     ).resolves.toEqual(waiting);
   });
 });
@@ -126,9 +134,9 @@ describe("registerWorkerShutdown", () => {
       {
         async close() {
           closes += 1;
-        }
+        },
       },
-      signals
+      signals,
     );
 
     signals.emit("SIGTERM");

@@ -15,7 +15,7 @@ export async function fetchHealth(): Promise<HealthResult> {
 
   try {
     const response = await fetch(`${baseUrl}/health`, {
-      next: { revalidate: 5 }
+      next: { revalidate: 5 },
     });
 
     if (!response.ok) {
@@ -26,7 +26,7 @@ export async function fetchHealth(): Promise<HealthResult> {
   } catch (error) {
     return {
       ok: false,
-      error: error instanceof Error ? error.message : "Unable to load health status"
+      error: error instanceof Error ? error.message : "Unable to load health status",
     };
   }
 }

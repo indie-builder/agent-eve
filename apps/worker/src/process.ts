@@ -43,7 +43,7 @@ export type CreateAgentWorkerProcessOptions = {
 function createBullMqWorker(options: CreateWorkerOptions): AgentWorker {
   const worker = new Worker<AgentJobPayload>(agentQueueName, options.processJob, {
     connection: createBullMqConnectionOptions(options.env.REDIS_URL),
-    concurrency: options.concurrency
+    concurrency: options.concurrency,
   });
 
   worker.on("completed", options.onCompleted);
@@ -62,7 +62,9 @@ function createAgentJobError(result: AgentRunResult): Error {
   return new Error(reason);
 }
 
-export function createAgentWorkerProcess(options: CreateAgentWorkerProcessOptions): AgentWorkerProcess {
+export function createAgentWorkerProcess(
+  options: CreateAgentWorkerProcessOptions,
+): AgentWorkerProcess {
   const logger = options.logger ?? createLogger({ service: "worker" });
   const processJob =
     options.processJob ??
@@ -89,17 +91,20 @@ export function createAgentWorkerProcess(options: CreateAgentWorkerProcessOption
     },
     onFailed(job, error) {
       logger.error({ jobId: job?.id, error }, "agent job failed");
-    }
+    },
   });
 
   return {
     close() {
       return worker.close();
-    }
+    },
   };
 }
 
-export function registerWorkerShutdown(workerProcess: AgentWorkerProcess, signalTarget: NodeJS.Process = process): void {
+export function registerWorkerShutdown(
+  workerProcess: AgentWorkerProcess,
+  signalTarget: NodeJS.Process = process,
+): void {
   let closing: Promise<void> | undefined;
   const close = () => {
     closing ??= workerProcess.close();

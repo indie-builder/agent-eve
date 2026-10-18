@@ -9,7 +9,7 @@ export function createRedisPingConnection(redisUrl: string) {
     enableOfflineQueue: false,
     lazyConnect: true,
     maxRetriesPerRequest: 1,
-    retryStrategy: null
+    retryStrategy: null,
   });
 }
 
@@ -17,6 +17,6 @@ export function createAgentQueue(redisUrl: string) {
   return new Queue<AgentJobPayload>(agentQueueName, {
     connection: createBullMqConnectionOptions(redisUrl),
     // Agent jobs create Eve sessions; retrying a failed job could duplicate a session.
-    defaultJobOptions: { attempts: 1 }
+    defaultJobOptions: { attempts: 1 },
   });
 }

@@ -88,9 +88,7 @@ describe("POST /agent/chat", () => {
 
     expect(response.statusCode).toBe(200);
     expect(response.headers["content-type"]).toContain("text/event-stream");
-    expect(response.body).toContain(
-      'event: agent-event\ndata: {"kind":"text","text":"Working"}',
-    );
+    expect(response.body).toContain('event: agent-event\ndata: {"kind":"text","text":"Working"}');
     expect(response.body).toContain('event: result\ndata: {"configured":true');
   });
 
@@ -131,9 +129,9 @@ describe("removed platform MCP surface", () => {
   it("does not expose MCP management routes from the API", async () => {
     const app = buildApp({ env: loadEnv({ NODE_ENV: "test" }) });
 
-    await expect(
-      app.inject({ method: "GET", url: "/mcp/servers" }),
-    ).resolves.toMatchObject({ statusCode: 404 });
+    await expect(app.inject({ method: "GET", url: "/mcp/servers" })).resolves.toMatchObject({
+      statusCode: 404,
+    });
     await expect(
       app.inject({
         method: "GET",

@@ -17,27 +17,15 @@ const runtimeAudit: HookDefinition = defineHook({
       });
     },
     "authorization.required"(event, ctx) {
-      audit(
-        "info",
-        "authorization.required",
-        ctx.session.id,
-        ctx.channel.kind,
-        {
-          connection: event.data.name,
-        },
-      );
+      audit("info", "authorization.required", ctx.session.id, ctx.channel.kind, {
+        connection: event.data.name,
+      });
     },
     "authorization.completed"(event, ctx) {
-      audit(
-        "info",
-        "authorization.completed",
-        ctx.session.id,
-        ctx.channel.kind,
-        {
-          connection: event.data.name,
-          outcome: event.data.outcome,
-        },
-      );
+      audit("info", "authorization.completed", ctx.session.id, ctx.channel.kind, {
+        connection: event.data.name,
+        outcome: event.data.outcome,
+      });
     },
     "compaction.completed"(_event, ctx) {
       audit("info", "compaction.completed", ctx.session.id, ctx.channel.kind);

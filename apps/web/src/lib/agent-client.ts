@@ -53,9 +53,7 @@ export async function submitAgentJob({
   }
 
   if (!response.ok) {
-    throw new Error(
-      `Agent job intake rejected the request with status ${response.status}`,
-    );
+    throw new Error(`Agent job intake rejected the request with status ${response.status}`);
   }
 
   return AgentJobAcceptedSchema.parse(await response.json());
@@ -92,9 +90,7 @@ export async function streamAgentChat({
   }
 
   if (!response.ok) {
-    throw new Error(
-      `Agent chat rejected the request with status ${response.status}`,
-    );
+    throw new Error(`Agent chat rejected the request with status ${response.status}`);
   }
 
   if (!response.body) {

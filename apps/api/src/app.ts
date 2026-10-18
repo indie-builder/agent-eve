@@ -1,22 +1,12 @@
 import { PassThrough } from "node:stream";
 import cors from "@fastify/cors";
 import Fastify, { type FastifyInstance } from "fastify";
-import {
-  runAgent,
-  type AgentRunResult,
-  type RunAgentOptions,
-} from "@agent-template/agent";
+import { runAgent, type AgentRunResult, type RunAgentOptions } from "@agent-template/agent";
 import { createLoggerOptions } from "@agent-template/logger";
-import {
-  AgentRunInputSchema,
-  type AgentRunEvent,
-} from "@agent-template/shared";
+import { AgentRunInputSchema, type AgentRunEvent } from "@agent-template/shared";
 import { loadEnv, type Env } from "./env.js";
 import { getHealth } from "./health.js";
-import {
-  createAgentJobIntake,
-  type AgentJobIntake,
-} from "./agent-job-intake.js";
+import { createAgentJobIntake, type AgentJobIntake } from "./agent-job-intake.js";
 
 export type BuildAppOptions = {
   env?: Env;
@@ -61,8 +51,7 @@ export function buildApp(options: BuildAppOptions = {}): FastifyInstance {
         writeSseEvent(stream, "result", result);
       } catch (caught) {
         writeSseEvent(stream, "error", {
-          message:
-            caught instanceof Error ? caught.message : "Agent chat failed",
+          message: caught instanceof Error ? caught.message : "Agent chat failed",
         });
       } finally {
         stream.end();

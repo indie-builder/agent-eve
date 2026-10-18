@@ -14,11 +14,7 @@ export type { AgentRunResult };
 
 export const AgentRuntimeEnvSchema = z.object({
   EVE_AGENT_HOST: z.string().optional(),
-  EVE_AGENT_MAX_RECONNECT_ATTEMPTS: z.coerce
-    .number()
-    .int()
-    .nonnegative()
-    .optional(),
+  EVE_AGENT_MAX_RECONNECT_ATTEMPTS: z.coerce.number().int().nonnegative().optional(),
   EVE_AGENT_REQUEST_TIMEOUT_MS: z.coerce.number().int().positive().optional(),
   EVE_AGENT_SERVICE_TOKEN: z.string().optional(),
 });
@@ -35,15 +31,11 @@ export type RunAgentOptions = {
   onEvent?: (event: AgentRunEvent) => void;
 };
 
-export function parseAgentRuntimeEnv(
-  input: Record<string, unknown>,
-): AgentRuntimeEnv {
+export function parseAgentRuntimeEnv(input: Record<string, unknown>): AgentRuntimeEnv {
   return AgentRuntimeEnvSchema.parse(input);
 }
 
-export function getAgentRuntimeStateFromEnv(
-  input: Record<string, unknown>,
-): AgentRuntimeState {
+export function getAgentRuntimeStateFromEnv(input: Record<string, unknown>): AgentRuntimeState {
   return {
     runtime: "eve",
     ...getEveAgentRuntimeStateFromEnv(parseAgentRuntimeEnv(input)),

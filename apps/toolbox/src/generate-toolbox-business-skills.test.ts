@@ -9,10 +9,7 @@ const eveSkillsRoot = join(repositoryRoot, "apps/runtime/agent/skills");
 const skills = [
   {
     name: "ecommerce-sales-analysis",
-    tools: [
-      "summarize-ecommerce-sales-by-day",
-      "summarize-ecommerce-sales-by-channel",
-    ],
+    tools: ["summarize-ecommerce-sales-by-day", "summarize-ecommerce-sales-by-channel"],
   },
   {
     name: "ecommerce-product-analysis",
@@ -24,10 +21,7 @@ const skills = [
   },
   {
     name: "ecommerce-fulfillment-operations",
-    tools: [
-      "list-ecommerce-fulfillment-exceptions",
-      "get-ecommerce-order-detail",
-    ],
+    tools: ["list-ecommerce-fulfillment-exceptions", "get-ecommerce-order-detail"],
   },
 ];
 

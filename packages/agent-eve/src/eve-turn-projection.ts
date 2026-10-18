@@ -12,9 +12,7 @@ export type EveTurnProjection =
 export function projectEveTurn(
   events: readonly MessageStreamEvent[],
 ): EveTurnProjection | undefined {
-  const failed =
-    findLastByType(events, "session.failed") ??
-    findLastByType(events, "turn.failed");
+  const failed = findLastByType(events, "session.failed") ?? findLastByType(events, "turn.failed");
   if (failed) {
     return { status: "failed", reason: failed.data.message };
   }
@@ -37,9 +35,7 @@ export function projectEveStreamEvent(
   switch (event.type) {
     case "message.appended":
       state.messageText += event.data.messageDelta;
-      return state.messageText
-        ? [{ kind: "text", text: state.messageText }]
-        : [];
+      return state.messageText ? [{ kind: "text", text: state.messageText }] : [];
     case "message.completed":
       state.messageText = "";
       return [{ kind: "text", text: event.data.message }];
@@ -57,9 +53,7 @@ export function projectEveStreamEvent(
               kind: "tool-result",
               tool,
               status: event.data.status,
-              ...(event.data.error?.message
-                ? { error: event.data.error.message }
-                : {}),
+              ...(event.data.error?.message ? { error: event.data.error.message } : {}),
             },
           ]
         : [];
@@ -78,9 +72,7 @@ export function projectEveStreamEvent(
           connection: event.data.name,
           status: "required",
           description: event.data.description,
-          ...(event.data.authorization?.url
-            ? { url: event.data.authorization.url }
-            : {}),
+          ...(event.data.authorization?.url ? { url: event.data.authorization.url } : {}),
           ...(event.data.authorization?.userCode
             ? { userCode: event.data.authorization.userCode }
             : {}),
@@ -114,10 +106,7 @@ export function projectEveStreamEvent(
             {
               kind: "subagent",
               name: event.data.name,
-              status:
-                event.data.status === "cancelled"
-                  ? "stopped"
-                  : event.data.status,
+              status: event.data.status === "cancelled" ? "stopped" : event.data.status,
             },
           ]
         : [];
@@ -139,21 +128,15 @@ export function projectEveStreamEvent(
         ? [
             {
               kind: "usage",
-              ...(usage.inputTokens === undefined
-                ? {}
-                : { inputTokens: usage.inputTokens }),
-              ...(usage.outputTokens === undefined
-                ? {}
-                : { outputTokens: usage.outputTokens }),
+              ...(usage.inputTokens === undefined ? {} : { inputTokens: usage.inputTokens }),
+              ...(usage.outputTokens === undefined ? {} : { outputTokens: usage.outputTokens }),
               ...(usage.cacheReadTokens === undefined
                 ? {}
                 : { cacheReadTokens: usage.cacheReadTokens }),
               ...(usage.cacheWriteTokens === undefined
                 ? {}
                 : { cacheWriteTokens: usage.cacheWriteTokens }),
-              ...(usage.costUsd === undefined
-                ? {}
-                : { costUsd: usage.costUsd }),
+              ...(usage.costUsd === undefined ? {} : { costUsd: usage.costUsd }),
             },
           ]
         : [];
@@ -196,12 +179,8 @@ function projectInputRequest(request: InputRequest) {
     prompt: request.prompt,
     tool: request.action.toolName,
     ...(request.display ? { display: request.display } : {}),
-    ...(request.allowFreeform === undefined
-      ? {}
-      : { allowFreeform: request.allowFreeform }),
-    ...(request.options
-      ? { options: request.options.map(projectInputOption) }
-      : {}),
+    ...(request.allowFreeform === undefined ? {} : { allowFreeform: request.allowFreeform }),
+    ...(request.options ? { options: request.options.map(projectInputOption) } : {}),
   };
 }
 
@@ -215,10 +194,7 @@ function projectInputOption(option: InputOption) {
 }
 
 function readActionRequestName(
-  action: Extract<
-    MessageStreamEvent,
-    { type: "actions.requested" }
-  >["data"]["actions"][number],
+  action: Extract<MessageStreamEvent, { type: "actions.requested" }>["data"]["actions"][number],
 ) {
   switch (action.kind) {
     case "tool-call":
@@ -234,10 +210,7 @@ function readActionRequestName(
 }
 
 function readActionResultName(
-  result: Extract<
-    MessageStreamEvent,
-    { type: "action.result" }
-  >["data"]["result"],
+  result: Extract<MessageStreamEvent, { type: "action.result" }>["data"]["result"],
 ) {
   switch (result.kind) {
     case "tool-result":
@@ -270,10 +243,7 @@ function findEveOutput(events: readonly MessageStreamEvent[]): string {
     return formatEveOutput(result.data.result);
   }
 
-  const final = findLastMessage(
-    events,
-    (finishReason) => finishReason !== "tool-calls",
-  );
+  const final = findLastMessage(events, (finishReason) => finishReason !== "tool-calls");
   const anyMessage = final ?? findLastMessage(events, () => true);
   if (anyMessage) {
     return anyMessage.data.message;
@@ -295,10 +265,7 @@ function findLastMessage(
 ) {
   for (let index = events.length - 1; index >= 0; index -= 1) {
     const event = events[index];
-    if (
-      event?.type === "message.completed" &&
-      predicate(event.data.finishReason)
-    ) {
+    if (event?.type === "message.completed" && predicate(event.data.finishReason)) {
       return event;
     }
   }

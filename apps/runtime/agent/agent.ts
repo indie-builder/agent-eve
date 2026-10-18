@@ -1,8 +1,5 @@
 import { defineAgent, type AgentDefinition } from "eve";
-import {
-  createEveAnthropicModel,
-  readEveAgentRuntimeLimits,
-} from "../src/provider";
+import { createEveAnthropicModel, readEveAgentRuntimeLimits } from "../src/provider";
 
 const limits = readEveAgentRuntimeLimits(process.env);
 

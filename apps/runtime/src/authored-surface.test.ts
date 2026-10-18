@@ -23,8 +23,7 @@ describe("Eve authored surface", () => {
   });
 
   it("owns Toolbox as an Eve MCP connection", async () => {
-    const { default: toolbox, eveToolboxToolNames } =
-      await import("../agent/connections/toolbox");
+    const { default: toolbox, eveToolboxToolNames } = await import("../agent/connections/toolbox");
     const connection = toolbox as {
       description?: string;
       tools?: { allow?: readonly string[] };
@@ -88,19 +87,14 @@ describe("Eve authored surface", () => {
       experimental?: { workflow?: { world?: string } };
     };
 
-    expect(agent.experimental?.workflow?.world).toBe(
-      "@workflow/world-postgres",
-    );
-    expect(agent.build?.externalDependencies).toEqual([
-      "@workflow/world-postgres",
-    ]);
+    expect(agent.experimental?.workflow?.world).toBe("@workflow/world-postgres");
+    expect(agent.build?.externalDependencies).toEqual(["@workflow/world-postgres"]);
   });
 
   it.each(["bash", "read_file", "web_fetch", "web_search", "write_file"])(
     "disables the production-incompatible default tool %s",
     async (tool) => {
-      const definition = (await import(`../agent/tools/${tool}.ts`))
-        .default as {
+      const definition = (await import(`../agent/tools/${tool}.ts`)).default as {
         kind?: string;
       };
 
