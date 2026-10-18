@@ -20,7 +20,7 @@ TypeScript Agent 平台模板：`apps/` 放运行进程，`packages/` 放可复�
 - 不把业务假设写死进模板；模板保持可复用、低耦合。
 - 修改后按影响范围运行对应 package 的 `lint`、`typecheck`、`test`。
 - 构建与回归验证默认直接在本地运行；只有用户明确要求 Docker 构建、Docker 启动或容器内验证时，才使用 Docker Compose。不要把 Docker 当作默认验证路径，也不要在未获授权时运行内部调用 `docker compose` 的 verifier。
-- 架构术语以 `CONTEXT.md` 为准；架构候选维护在 `.scratch/architecture-review/backlog.md`。
+- 架构术语以 `GLOSSARY.md` 为准；架构候选维护在 `.scratch/architecture-review/backlog.md`。
 
 ## 常用命令
 
@@ -46,20 +46,22 @@ pnpm db:seed
 
 启动本地依赖：`docker compose up -d`
 
-## 技能安装
+## 研发 Agent 与技能
 
-- 查找可用技能时统一使用 `find-skills`。
-- 真实技能目录：`.agents/skills/<skill-name>/`
-- Codex 发现路径：`.codex/skills/<skill-name> -> ../../.agents/skills/<skill-name>`
-- GitHub 技能用 sparse checkout 拉目标目录，再复制到 `.agents/skills/<skill-name>`。
-- 如果技能自带 Codex hook，合并到 `.codex/hooks.json`，不要覆盖已有 hook。
-- 不把已安装技能清单写进 AGENTS.md；这里只写安装方式和协作规则。
+- 研发默认使用 Claude Code，业务 Agent runtime 仍为 Eve；不维护 Codex 兼容配置。
+- 技能优先采用对应的 Claude Code Plugin，以项目维度安装（`claude plugin install <plugin>@<marketplace> --scope project`）；不支持项目维度时才使用用户维度。
+- 只有没有对应 Plugin 或项目自定义的技能才安装到项目目录。外部技能通过 Skills CLI 管理，真实文件统一存 `.agents/skills/<skill-name>`，`.claude/skills` 使用相对链接发现，不维护第二份手工镜像；项目自定义技能同样按此目录布局保留。
+- 查找技能统一使用 `find-skills` 与 `npx skills@latest find <技术或用途>`；先核对是否有对应 Plugin，再决定本地安装。Plugin 自己持有 skills/agents/hooks，不复制进项目或修改其缓存。
+- Plugin 和 marketplace 声明合并到 `.claude/settings.json`，保留已有设置。无 Plugin 的后备技能通过 `npx skills@latest add <来源> --skill <名称> --agent claude-code -y` 管理，默认项目维度，不加 `-g`；更新用 `npx skills@latest update --project -y`，来源锁文件提交到仓库。
+- 更新后核对远端组件清单：删除已退休技能、旧链接和上游已删文件，不能只做增量复制；改名时更新 Claude 链接与项目引用。
+- Skills CLI 管理来源以 `skills-lock.json` 为准；Plugin与本地业务边界记录在 `.agents/skill-sources.json`，分类清单见 `docs/agents/skills.md`。本地业务技能单独标记，不因远端缺失删除。
+- 不把已安装技能清单写进 AGENTS.md。
 
 ## Agent skills
 
 - 任务、PRD 和 issue：本地 markdown，写入 `.scratch/<feature-slug>/`。See `docs/agents/issue-tracker.md`.
 - issue triage 标签：`needs-triage`、`needs-info`、`ready-for-agent`、`ready-for-human`、`wontfix`。See `docs/agents/triage-labels.md`.
-- 领域文档：根目录 `CONTEXT.md` 和 `docs/adr/`。See `docs/agents/domain.md`.
+- 领域文档：根目录 `GLOSSARY.md` 和 `docs/adr/`。See `docs/agents/domain.md`.
 
 ## 模块地图
 
@@ -77,8 +79,9 @@ pnpm db:seed
 
 ## 架构规则
 
-- 每个明确任务或需求完成后，提交前必须使用 `improve-codebase-architecture` 做一轮代码架构审查。
+- 每个明确任务或需求完成后，提交前必须使用 `mattpocock-skills:improve-codebase-architecture` 做一轮代码架构审查。
 - 架构审查产生的候选问题默认按该 skill 的推荐方案落地；只有涉及产品取舍、破坏性变更、成本明显扩大或外部约束无法判断时才向用户确认。
+- 架构报告默认中文HTML，标题、字段、图例和最终提问用中文；保留 module/interface/depth/seam/adapter/leverage/locality 和 Strong/Worth exploring/Speculative 原词。
 - 每个架构候选修复后单独提交，全部候选修复并验证完成后再统一推送。
 - Web、API、Worker、Eve runtime、Toolbox 独立进程和镜像，分别部署与扩缩容；模型凭证只配置在 runtime，API/Worker 仅持有服务连接凭证。
 - API/Worker 只通过 `@agent-template/agent` 调用 Eve HTTP client，不嵌入模型执行；`apps/runtime` 独占 authored surface 和 Workflow 状态。
@@ -92,7 +95,7 @@ pnpm db:seed
 
 ## 提交规则
 
-- 涉及 Git 提交、提交信息、changelog 或提交规范时，必须使用 `.codex/skills/chinese-commit-conventions`。
+- 涉及 Git 提交、提交信息、changelog 或提交规范时，必须使用 `superpowers-zh:chinese-commit-conventions`。
 - 每个明确任务或需求完成后，先完成架构审查和必要修复，再默认提交并推送到当前跟踪分支；用户明确说“不要提交”“不要推送”“先别提交”时除外。
 - 只查看、只分析、只给方案或没有文件改动时，不创建空提交。
 - 按功能点提交，不把无关改动混进同一个提交。

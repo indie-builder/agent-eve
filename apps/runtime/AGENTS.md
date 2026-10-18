@@ -25,7 +25,7 @@
 - 不导入其他 workspace 包的源码相对路径；只使用 package exports。
 - 不在这里放 HTTP client、continuation、event projection 或 HITL 转换，这些属于 `@agent-template/agent-eve`。
 - 不把 API Key、服务 token 或数据库连接信息写入仓库。
-- 不凭记忆写 Eve API；以 `node_modules/eve/docs/` 和 `.agents/skills/eve` 为准。
+- 不凭记忆写 Eve API；以 `node_modules/eve/docs/` 和 `.claude/skills/eve` 为准。
 
 ## 验证
 

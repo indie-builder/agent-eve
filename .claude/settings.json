@@ -1,0 +1,66 @@
+{
+  "enabledPlugins": {
+    "mattpocock-skills@claude-plugins-official": true,
+    "nextjs@nextjs": true,
+    "postgres-best-practices@supabase-agent-skills": true,
+    "impeccable@impeccable": true,
+    "superpowers-zh@superpowers-zh": true,
+    "agentic-awesome-skills@agentic-awesome-skills": true,
+    "redis-development@claude-plugins-official": true
+  },
+  "extraKnownMarketplaces": {
+    "nextjs": {
+      "source": {
+        "source": "github",
+        "repo": "vercel/next.js",
+        "ref": "canary",
+        "sparsePaths": [
+          ".claude-plugin",
+          "skills"
+        ]
+      }
+    },
+    "supabase-agent-skills": {
+      "source": {
+        "source": "github",
+        "repo": "supabase/agent-skills",
+        "sparsePaths": [
+          ".claude-plugin",
+          "skills/supabase-postgres-best-practices"
+        ]
+      }
+    },
+    "impeccable": {
+      "source": {
+        "source": "github",
+        "repo": "pbakaus/impeccable",
+        "sparsePaths": [
+          ".claude-plugin",
+          "plugin"
+        ]
+      }
+    },
+    "superpowers-zh": {
+      "source": {
+        "source": "github",
+        "repo": "jnMetaCode/superpowers-zh"
+      }
+    },
+    "agentic-awesome-skills": {
+      "source": {
+        "source": "github",
+        "repo": "sickn33/agentic-awesome-skills",
+        "sparsePaths": [
+          ".claude-plugin",
+          "plugins/agentic-awesome-skills-claude"
+        ]
+      }
+    },
+    "claude-plugins-official": {
+      "source": {
+        "source": "github",
+        "repo": "anthropics/claude-plugins-official"
+      }
+    }
+  }
+}

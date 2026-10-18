@@ -1,0 +1,269 @@
+{
+  "schemaVersion": 1,
+  "checkedAt": "2026-10-18",
+  "policy": {
+    "scope": "Claude Code project plugins first; local project skills only when no matching plugin exists or project-authored.",
+    "sync": "Update plugins through Claude Code; replace fallback skill source directories completely, removing missing upstream files and retired names.",
+    "mattpocockSuite": "Track plugin.json stable skills; exclude in-progress and misc.",
+    "localModifications": "Project conventions stay in AGENTS.md/CLAUDE.md, never mutate plugin caches.",
+    "localSkillManagement": "npx skills@latest find/add/update/remove with --agent claude-code in project scope; skills-lock.json owns external skill sources. Do not keep duplicate manual mirrors."
+  },
+  "skills": {
+    "ecommerce-fulfillment-operations": {
+      "source": "local",
+      "path": ".agents/skills/ecommerce-fulfillment-operations",
+      "reason": "Project-authored Toolbox business workflow; no remote mirror.",
+      "installedSha256": "10a8d0dbefd4d24b7d925caaa18a916fd5528f0c10056ac354bbafbe1aa58f8f",
+      "files": 1,
+      "syncStatus": "local",
+      "delivery": "project-local"
+    },
+    "ecommerce-order-operations": {
+      "source": "local",
+      "path": ".agents/skills/ecommerce-order-operations",
+      "reason": "Project-authored Toolbox business workflow; no remote mirror.",
+      "installedSha256": "9281577cfdbdd50f26235f5b6d049583cd60069dcfd8d4ccef34a2ef6efc9412",
+      "files": 1,
+      "syncStatus": "local",
+      "delivery": "project-local"
+    },
+    "ecommerce-product-analysis": {
+      "source": "local",
+      "path": ".agents/skills/ecommerce-product-analysis",
+      "reason": "Project-authored Toolbox business workflow; no remote mirror.",
+      "installedSha256": "56da2165d0b70cfd324620381bdd1f577bdfcbd063c196121f0dfc9833350eab",
+      "files": 1,
+      "syncStatus": "local",
+      "delivery": "project-local"
+    },
+    "ecommerce-sales-analysis": {
+      "source": "local",
+      "path": ".agents/skills/ecommerce-sales-analysis",
+      "reason": "Project-authored Toolbox business workflow; no remote mirror.",
+      "installedSha256": "86e1326d5a8564cf39202c1dbb3b120250d1fa664fbb62740a1bbb62c3199b68",
+      "files": 1,
+      "syncStatus": "local",
+      "delivery": "project-local"
+    },
+    "eve": {
+      "delivery": "skills-cli-project",
+      "source": "vercel/eve",
+      "sourceType": "github",
+      "path": ".agents/skills/eve",
+      "upstreamSkillPath": "skills/eve/SKILL.md",
+      "lockfile": "skills-lock.json",
+      "files": 1,
+      "installedSha256": "c0ab63d36ef2c198e21137dedcb107285a7391aa2a5e9a24dc9da493c8cc8741"
+    },
+    "fastify-best-practices": {
+      "delivery": "skills-cli-project",
+      "source": "mcollina/skills",
+      "sourceType": "github",
+      "path": ".agents/skills/fastify-best-practices",
+      "upstreamSkillPath": "skills/fastify/SKILL.md",
+      "lockfile": "skills-lock.json",
+      "files": 21,
+      "installedSha256": "8706cea014e2679e28d4035b771e420b17f4175dbdf9764b6dccd6a5641cfbad"
+    },
+    "find-skills": {
+      "delivery": "skills-cli-project",
+      "source": "vercel-labs/skills",
+      "sourceType": "github",
+      "path": ".agents/skills/find-skills",
+      "upstreamSkillPath": "skills/find-skills/SKILL.md",
+      "lockfile": "skills-lock.json",
+      "files": 1,
+      "installedSha256": "ecc7999c2cac8a2e5203050265a892942f8dc72c7ec1779a1cc4cc8a6d2b5ddb"
+    },
+    "migrate-oxfmt": {
+      "delivery": "skills-cli-project",
+      "source": "oxc-project/oxc",
+      "sourceType": "github",
+      "path": ".agents/skills/migrate-oxfmt",
+      "upstreamSkillPath": ".agents/skills/migrate-oxfmt/SKILL.md",
+      "lockfile": "skills-lock.json",
+      "files": 1,
+      "installedSha256": "2a03b0b1432d88943fdebfdbd5930ee87ccb9ded4b4e56a8baf155dd2bb3ca97"
+    },
+    "migrate-oxlint": {
+      "delivery": "skills-cli-project",
+      "source": "oxc-project/oxc",
+      "sourceType": "github",
+      "path": ".agents/skills/migrate-oxlint",
+      "upstreamSkillPath": ".agents/skills/migrate-oxlint/SKILL.md",
+      "lockfile": "skills-lock.json",
+      "files": 1,
+      "installedSha256": "52fb3227a23a97bdc2cdfad641bcca2dc41b627b96a905b4b02ec932db7ed14b"
+    },
+    "pnpm": {
+      "delivery": "skills-cli-project",
+      "source": "antfu/skills",
+      "sourceType": "github",
+      "path": ".agents/skills/pnpm",
+      "upstreamSkillPath": "skills/pnpm/SKILL.md",
+      "lockfile": "skills-lock.json",
+      "files": 21,
+      "installedSha256": "ae13534a1d1c21da5cc1fadd6a1c6db9443560e2ca792b7aeed7144da886cf00"
+    },
+    "prisma-orm-setup": {
+      "delivery": "skills-cli-project",
+      "source": "prisma/skills",
+      "sourceType": "github",
+      "path": ".agents/skills/prisma-orm-setup",
+      "upstreamSkillPath": "prisma-orm-setup/SKILL.md",
+      "lockfile": "skills-lock.json",
+      "files": 9,
+      "installedSha256": "a766bfe3293887ceda02c72de826c0094b372aaf59dd989aceb7714bd9b363fe"
+    },
+    "shadcn": {
+      "delivery": "skills-cli-project",
+      "source": "shadcn-ui/ui",
+      "sourceType": "github",
+      "path": ".agents/skills/shadcn",
+      "upstreamSkillPath": "skills/shadcn/SKILL.md",
+      "lockfile": "skills-lock.json",
+      "files": 21,
+      "installedSha256": "eedfc7b3e290032a98e9dc74716c686f8d7c325b28b693be32cd16bdc0486842"
+    },
+    "tsdown": {
+      "delivery": "skills-cli-project",
+      "source": "rolldown/tsdown",
+      "sourceType": "github",
+      "path": ".agents/skills/tsdown",
+      "upstreamSkillPath": "skills/tsdown/SKILL.md",
+      "lockfile": "skills-lock.json",
+      "files": 41,
+      "installedSha256": "8a8dba740602cd44be18d0fc3cbffa96fe1da103d6cef2b0b5125f9a4689033d"
+    },
+    "turborepo": {
+      "delivery": "skills-cli-project",
+      "source": "vercel/turborepo",
+      "sourceType": "github",
+      "path": ".agents/skills/turborepo",
+      "upstreamSkillPath": "skills/turborepo/SKILL.md",
+      "lockfile": "skills-lock.json",
+      "files": 1,
+      "installedSha256": "1d874933d1684a486a01516104e3c03b4ca20b1a757eda2f2d18b4467077132f"
+    },
+    "vercel-react-best-practices": {
+      "delivery": "skills-cli-project",
+      "source": "vercel-labs/agent-skills",
+      "sourceType": "github",
+      "path": ".agents/skills/vercel-react-best-practices",
+      "upstreamSkillPath": "skills/react-best-practices/SKILL.md",
+      "lockfile": "skills-lock.json",
+      "files": 75,
+      "installedSha256": "e14b7e25754523bd5ff212a0083af2ac4167f18a5f1655baf225ee76d3dfc960"
+    },
+    "vitest": {
+      "delivery": "skills-cli-project",
+      "source": "antfu/skills",
+      "sourceType": "github",
+      "path": ".agents/skills/vitest",
+      "upstreamSkillPath": "skills/vitest/SKILL.md",
+      "lockfile": "skills-lock.json",
+      "files": 21,
+      "installedSha256": "97799fab69ef0acccac5c9a8794c8e6c632ec2715eaff09568c59aa4a9165267"
+    }
+  },
+  "integrations": {
+    ".claude/settings.json": {
+      "policy": "Project-scoped plugins and marketplaces; plugin-owned hooks; no copied Codex hook compatibility."
+    }
+  },
+  "retired": {
+    "to-prd": "to-spec",
+    "to-issues": "to-tickets",
+    "writing-great-skills": "writing-for-agents",
+    "prisma-database-setup": "prisma-orm-setup",
+    "react-best-practices": "vercel-react-best-practices"
+  },
+  "plugins": {
+    "mattpocock-skills@claude-plugins-official": {
+      "scope": "project",
+      "source": "mattpocock/skills",
+      "version": "1.3.1",
+      "skills": [
+        "ask-matt",
+        "code-review",
+        "codebase-design",
+        "diagnosing-bugs",
+        "domain-modeling",
+        "grill-me",
+        "grill-with-docs",
+        "grilling",
+        "handoff",
+        "implement",
+        "implement-spec",
+        "improve-codebase-architecture",
+        "pr",
+        "prototype",
+        "research",
+        "retro",
+        "setup-matt-pocock-skills",
+        "tdd",
+        "teach",
+        "to-questionnaire",
+        "to-spec",
+        "to-tickets",
+        "triage",
+        "wait-what",
+        "wayfinder",
+        "wizard",
+        "writing-for-agents"
+      ]
+    },
+    "nextjs@nextjs": {
+      "scope": "project",
+      "source": "vercel/next.js",
+      "version": "0.1.0",
+      "skills": [
+        "next-cache-components-adoption",
+        "next-cache-components-optimizer",
+        "next-dev-loop"
+      ]
+    },
+    "postgres-best-practices@supabase-agent-skills": {
+      "scope": "project",
+      "source": "supabase/agent-skills",
+      "version": "c9be0e931b79",
+      "skills": [
+        "supabase-postgres-best-practices"
+      ]
+    },
+    "impeccable@impeccable": {
+      "scope": "project",
+      "source": "pbakaus/impeccable",
+      "version": "4.6.0",
+      "skills": [
+        "impeccable"
+      ]
+    },
+    "superpowers-zh@superpowers-zh": {
+      "scope": "project",
+      "source": "jnMetaCode/superpowers-zh",
+      "version": "1.7.14",
+      "skills": [
+        "chinese-commit-conventions"
+      ]
+    },
+    "agentic-awesome-skills@agentic-awesome-skills": {
+      "scope": "project",
+      "source": "sickn33/agentic-awesome-skills",
+      "version": "19.9.0",
+      "skills": [
+        "agents-md",
+        "api-design-principles",
+        "sql-optimization-patterns"
+      ]
+    },
+    "redis-development@claude-plugins-official": {
+      "scope": "project",
+      "source": "redis/agent-skills",
+      "version": "1.4.0",
+      "skills": [
+        "redis-development"
+      ]
+    }
+  }
+}
