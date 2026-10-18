@@ -22,6 +22,17 @@ TypeScript Agent 平台模板：`apps/` 放运行进程，`packages/` 放可复�
 - 构建与回归验证默认直接在本地运行；只有用户明确要求 Docker 构建、Docker 启动或容器内验证时，才使用 Docker Compose。不要把 Docker 当作默认验证路径，也不要在未获授权时运行内部调用 `docker compose` 的 verifier。
 - 架构术语以 `GLOSSARY.md` 为准；架构候选维护在 `.scratch/architecture-review/backlog.md`。
 
+## 测试标准
+
+- TesterArmy `e2e` 是唯一端到端验收框架；Web 用户旅程和对外 HTTP API 验收统一放根目录 `tests/`，使用同一套 locator、fixture、断言和报告，不新增 Playwright Test、Cypress 等平行验收套件。
+- 默认入口为 `pnpm test`：先运行精简的底层契约检查，再运行 e2e Web/API 验收。新增功能优先补能观察到用户结果的验收流程，不按函数、组件或文件数量堆测试；每个流程聚焦一个用户目标，关键结果使用明确断言。
+- 同一行为默认只在最合适的一层验证。迁移用例必须先验证替代覆盖，再删除旧用例；删除已无额外检错价值的重复 happy path、静态常量、简单透传与第三方库行为测试，不通过隐藏、skip 或允许零测试掩盖缺口。
+- Vitest 仅作为必要底层检查的例外：信任/权限边界、协议编解码和非法输入、不可由旅程稳定覆盖的资源释放/失败分支、关键数据不变量。同类检查集中到少量契约文件，新增时说明 e2e 无法有效覆盖的原因，不维护通用组件测试套件。
+- e2e 成功路径走真实 Web 和 HTTP API；本地确定性验收只在外部 runtime/queue seam 注入测试 adapter，不在浏览器伪造成功响应。故障注入只用于网络/服务失败等难以稳定制造的情况，并在文档标明隔离范围。
+- `pnpm test:live` 对已启动的真实 Web/API/Eve 环境验收，不 mock runtime、不自动启动 Docker；缺少服务或配置时失败，不能以 skip 当作通过。确定性验收不能宣称已经验证真实模型、MCP、数据库或队列。
+- Eve 原生 eval 只验证模型/工具权限/会话行为，按需显式执行，不复制到另一个评估框架，也不纳入默认回归。稳定步骤无需测试模型；只有易变交互或语义判断才考虑 e2e `agent.*`。
+- 运行方式、保留例外及上游依据见 `docs/testing.md`。e2e 报告、截图、trace、缓存和启动日志统一写入忽略的 `.e2e/`。
+
 ## 常用命令
 
 ```bash

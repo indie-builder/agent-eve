@@ -27,6 +27,11 @@
 
 `GET /health` 必须快速返回。PostgreSQL 或 Redis 不可用时应返回 `degraded`，不能让请求长时间挂起。
 
+## 测试归属
+
+- HTTP契约和Chat用户流程统一放根 `tests/`，使用e2e真实HTTP请求验收，不在inject与e2e重复维护成功路径。
+- 本目录仅保留health故障聚合、queue资源释放等必要底层检查。非法请求返回400；runtime执行中失败通过SSE error表达。
+
 ## 验证
 
 ```bash

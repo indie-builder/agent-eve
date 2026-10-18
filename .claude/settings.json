@@ -20,7 +20,8 @@
     "postgres-best-practices@supabase-agent-skills": true,
     "impeccable@impeccable": true,
     "agentic-awesome-skills@agentic-awesome-skills": true,
-    "redis-development@claude-plugins-official": true
+    "redis-development@claude-plugins-official": true,
+    "e2e@e2e": true
   },
   "extraKnownMarketplaces": {
     "nextjs": {
@@ -68,6 +69,16 @@
       "source": {
         "source": "github",
         "repo": "anthropics/claude-plugins-official"
+      }
+    },
+    "e2e": {
+      "source": {
+        "source": "github",
+        "repo": "tester-army/e2e",
+        "sparsePaths": [
+          ".claude-plugin",
+          "plugins/e2e"
+        ]
       }
     }
   }

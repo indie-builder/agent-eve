@@ -8,13 +8,9 @@
   "scripts": {
     "build": "tsdown src/index.ts --format esm --no-dts",
     "lint": "oxlint --deny-warnings src",
-    "typecheck": "tsc -p tsconfig.json --noEmit",
-    "test": "vitest run"
+    "typecheck": "tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {
     "pino": ">=10.4.0"
-  },
-  "devDependencies": {
-    "vitest": ">=5.0.5"
   }
 }

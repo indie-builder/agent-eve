@@ -1,12 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { MessageStreamEvent } from "eve/client";
-import {
-  defaultEveAgentMaxReconnectAttempts,
-  getEveAgentRuntimeStateFromEnv,
-  parseEveAgentConfig,
-  runEveAgent,
-} from "./index.js";
-import { readEveAgentModel } from "./config.js";
+import { getEveAgentRuntimeStateFromEnv, parseEveAgentConfig, runEveAgent } from "./index.js";
 import { encodeEveContinuation } from "./eve-continuation.js";
 
 const meta = { at: "2026-10-18T00:00:00.000Z", id: "evt_1" };
@@ -30,26 +24,6 @@ function responseOf(
 }
 
 describe("Eve Agent runtime", () => {
-  it("is unconfigured without an Eve Agent host", () => {
-    const state = getEveAgentRuntimeStateFromEnv({});
-
-    expect(state.configured).toBe(false);
-  });
-
-  it("is configured when the Eve Agent host is set", () => {
-    const config = parseEveAgentConfig({
-      EVE_AGENT_HOST: "http://127.0.0.1:13000",
-      EVE_AGENT_SERVICE_TOKEN: "service-token",
-    });
-    const state = getEveAgentRuntimeStateFromEnv({
-      EVE_AGENT_HOST: "http://127.0.0.1:13000",
-    });
-
-    expect(config.serviceToken).toBe("service-token");
-    expect(state.configured).toBe(true);
-    expect(state.host).toBe("http://127.0.0.1:13000");
-  });
-
   it("requires service authentication for non-loopback Eve hosts", async () => {
     expect(
       getEveAgentRuntimeStateFromEnv({
@@ -66,24 +40,6 @@ describe("Eve Agent runtime", () => {
       status: "skipped",
       reason: "EVE_AGENT_SERVICE_TOKEN is required for a non-loopback Eve Agent host",
     });
-  });
-
-  it("parses model configuration for the runtime service", () => {
-    expect(readEveAgentModel({ ANTHROPIC_MODEL: "kimi-custom" })).toBe("kimi-custom");
-    expect(readEveAgentModel({ EVE_AGENT_MODEL: "eve-custom" })).toBe("eve-custom");
-  });
-
-  it("parses Eve client resilience settings", () => {
-    expect(
-      parseEveAgentConfig({
-        EVE_AGENT_MAX_RECONNECT_ATTEMPTS: "7",
-        EVE_AGENT_REQUEST_TIMEOUT_MS: "45000",
-      }),
-    ).toMatchObject({
-      maxReconnectAttempts: 7,
-      requestTimeoutMs: 45_000,
-    });
-    expect(parseEveAgentConfig({}).maxReconnectAttempts).toBe(defaultEveAgentMaxReconnectAttempts);
   });
 
   it("skips execution until an Eve Agent host is configured", async () => {

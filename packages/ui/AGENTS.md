@@ -26,7 +26,7 @@
 
 ```bash
 pnpm --filter @agent-template/ui lint
-pnpm --filter @agent-template/ui test
+pnpm test:e2e # 组件通过实际页面验收，不单测第三方样式合并行为
 pnpm --filter @agent-template/ui typecheck
 pnpm --filter @agent-template/ui build
 ```

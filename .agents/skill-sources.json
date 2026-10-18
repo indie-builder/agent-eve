@@ -179,6 +179,16 @@
     "react-best-practices": "vercel-react-best-practices"
   },
   "plugins": {
+    "e2e@e2e": {
+      "scope": "project",
+      "source": "tester-army/e2e",
+      "version": "0.21.2",
+      "skills": [
+        "e2e",
+        "migrate-to-e2e",
+        "create-verification-skill"
+      ]
+    },
     "mattpocock-skills@claude-plugins-official": {
       "scope": "project",
       "source": "mattpocock/skills",

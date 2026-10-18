@@ -19,6 +19,14 @@ Plugin 声明位于 `.claude/settings.json`，使用 `--scope project` 安装。
 
 本项目不使用 Superpowers。已卸载 `superpowers-zh` Plugin、移除专属 marketplace 和缓存，并删除强制调用规则。社区套件收录的13个 Superpowers 工作流副本通过 `.claude/settings.json` 的 `skillOverrides: off` 关闭，用户级设置同步关闭；不手改其他 Plugin 的缓存，避免更新后恢复。社区套件原始文件仍随该 Plugin 分发，但不会作为可调用技能加载。
 
+## e2e 测试技能
+
+TesterArmy 官方 `e2e@e2e` Plugin 0.21.2 已按 `--scope project` 安装，marketplace 来源为 `tester-army/e2e`，包含 `e2e:e2e`、`e2e:migrate-to-e2e` 和 `e2e:create-verification-skill`。分别负责测试编写/运行/排错、现有 UI 自动化套件迁移、创建项目验证技能。
+
+已用 `npx skills@latest find tester-army` 核对技能来源，并优先选择官方 Plugin；不再向 `.agents/skills` 安装重复副本，所以 `skills-lock.json` 无新增条目。npm 包附带的技能无需额外通过 pnpm approve 安装。重新启动 Claude Code 后加载新技能；当前版本的使用文档也可通过 `pnpm exec e2e guide setup`、`pnpm exec e2e guide writing-tests` 阅读。
+
+安装声明在 `.claude/settings.json`，版本和组件清单在 `.agents/skill-sources.json`。本次不额外注册 MCP server；CLI 已可运行测试。业务 Agent 继续使用 Eve，e2e 仅用于研发测试。e2e 是唯一端到端验收标准，默认 `pnpm test` 统一执行精简契约检查与Web/API验收；详细规则、保留例外及运行命令见 [统一测试标准](../testing.md)。
+
 ## 按项目用途分类
 
 | 项目维度         | 优先使用                                                                   | 本地后备/自定义                         |

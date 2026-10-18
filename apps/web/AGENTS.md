@@ -27,6 +27,11 @@
 - Web 只展示 API Chat SSE 返回的 Agent run event 和最终文本，不代理 MCP tool 或 resource 请求。
 - Web 只持有 opaque Agent continuation；不要解析或构造具体 runtime 的 session state。HITL confirmation/select 通过 shared input response 提交。
 
+## 测试归属
+
+- 用户交互与可见结果统一通过根目录 `tests/agent-console.e2e.ts` 验收，运行 `pnpm test:e2e`；不再重复写happy path组件/客户端mock测试。
+- 本目录仅保留SSE协议异常与分块解码等浏览器流程难以稳定覆盖的检查；通用测试策略遵循根AGENTS.md。
+
 ## 验证
 
 ```bash
