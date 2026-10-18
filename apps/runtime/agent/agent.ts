@@ -2,7 +2,7 @@ import { defineAgent, type AgentDefinition } from "eve";
 import {
   createEveAnthropicModel,
   readEveAgentRuntimeLimits,
-} from "../src/config";
+} from "../src/provider";
 
 const limits = readEveAgentRuntimeLimits(process.env);
 
@@ -16,6 +16,14 @@ const agent: AgentDefinition = defineAgent({
   limits: {
     maxInputTokensPerSession: limits.maxInputTokensPerSession,
     maxOutputTokensPerSession: limits.maxOutputTokensPerSession,
+  },
+  experimental: {
+    workflow: {
+      world: "@workflow/world-postgres",
+    },
+  },
+  build: {
+    externalDependencies: ["@workflow/world-postgres"],
   },
 });
 

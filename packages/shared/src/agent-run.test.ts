@@ -7,19 +7,17 @@ describe("AgentRunResultSchema", () => {
       AgentRunResultSchema.parse({
         configured: true,
         events: [{ kind: "done", result: "Done" }],
-        model: "kimi-for-coding",
         output: "Done",
         promptLength: 9,
-        runtime: "claude",
+        runtime: "eve",
         status: "completed",
       }),
     ).toEqual({
       configured: true,
       events: [{ kind: "done", result: "Done" }],
-      model: "kimi-for-coding",
       output: "Done",
       promptLength: 9,
-      runtime: "claude",
+      runtime: "eve",
       status: "completed",
     });
   });
@@ -29,7 +27,6 @@ describe("AgentRunResultSchema", () => {
       AgentRunResultSchema.parse({
         configured: true,
         events: [{ kind: "waiting" }],
-        model: "kimi-for-coding",
         output: "请确认是否继续。",
         promptLength: 9,
         runtime: "eve",

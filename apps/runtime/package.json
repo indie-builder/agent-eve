@@ -1,0 +1,27 @@
+{
+  "name": "@agent-template/runtime",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "eve dev --host 0.0.0.0 --port 13010 --no-ui",
+    "build": "eve build",
+    "start": "node .output/server/index.mjs",
+    "workflow:setup": "bootstrap",
+    "lint": "eslint src agent evals",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "vitest run",
+    "info": "eve info --json",
+    "eval:list": "eve eval --list"
+  },
+  "dependencies": {
+    "@agent-template/agent-eve": "workspace:*",
+    "@ai-sdk/anthropic": "^4.0.82",
+    "@workflow/world-postgres": "^5.0.4",
+    "ai": "^7.0.143",
+    "eve": "latest",
+    "just-bash": "^3.6.0"
+  },
+  "devDependencies": {
+    "vitest": "^5.0.5"
+  }
+}

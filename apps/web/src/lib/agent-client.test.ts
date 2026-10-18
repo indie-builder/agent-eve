@@ -91,7 +91,7 @@ describe("streamAgentChat", () => {
       body: createStream(
         [
           'event: agent-event\ndata: {"kind":"text","text":"Working"}\n\n',
-          'event: result\ndata: {"promptLength":9,"runtime":"claude","configured":true,"model":"kimi-for-coding","status":"completed","events":[{"kind":"text","text":"Working"},{"kind":"done","result":"Done"}],"output":"Done"}\n\n',
+          'event: result\ndata: {"promptLength":9,"runtime":"eve","configured":true,"status":"completed","events":[{"kind":"text","text":"Working"},{"kind":"done","result":"Done"}],"output":"Done"}\n\n',
         ].join(""),
       ),
       ok: true,
@@ -134,7 +134,6 @@ describe("streamAgentChat", () => {
           promptLength: 2,
           runtime: "eve",
           configured: true,
-          model: "kimi-for-coding",
           status: "waiting",
           events: [{ kind: "waiting" }],
           output: "可以继续。",

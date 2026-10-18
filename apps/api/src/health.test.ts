@@ -18,7 +18,7 @@ describe("GET /health", () => {
     expect(body.status).toBe("ok");
     expect(body.database.status).toBe("skipped");
     expect(body.redis.status).toBe("skipped");
-    expect(body.agent.runtime).toBe("claude");
+    expect(body.agent.runtime).toBe("eve");
     expect(body.agent.configured).toBe(false);
     expect(body).not.toHaveProperty("toolbox");
   });
@@ -70,10 +70,9 @@ describe("POST /agent/chat", () => {
             { kind: "text", text: "Working" },
             { kind: "done", result: "Done" },
           ],
-          model: "kimi-for-coding",
           output: "Done",
           promptLength: (input as { prompt: string }).prompt.length,
-          runtime: "claude",
+          runtime: "eve",
           status: "completed",
         };
       },
@@ -99,13 +98,12 @@ describe("POST /agent/chat", () => {
     const inputs: unknown[] = [];
     const continuation = { token: "opaque-token" };
     const app = buildApp({
-      env: loadEnv({ NODE_ENV: "test", AGENT_RUNTIME: "eve" }),
+      env: loadEnv({ NODE_ENV: "test" }),
       async runAgent(input) {
         inputs.push(input);
         return {
           configured: true,
           events: [{ kind: "waiting" }],
-          model: "kimi-for-coding",
           output: "可以继续。",
           promptLength: 2,
           runtime: "eve",
@@ -166,16 +164,14 @@ describe("getHealth", () => {
     expect(status.timestamp).toBe("2026-06-26T00:00:00.000Z");
     expect(status.queue.status).toBe("unavailable");
     expect(status.redis.message).toBe("Redis refused connection");
-    expect(status.agent.runtime).toBe("claude");
+    expect(status.agent.runtime).toBe("eve");
   });
 
   it("keeps Eve Agent runtime env config available after API env parsing", async () => {
     const status = await getHealth(
       loadEnv({
         NODE_ENV: "test",
-        AGENT_RUNTIME: "eve",
         EVE_AGENT_HOST: "http://127.0.0.1:13000",
-        EVE_AGENT_MODEL: "eve-custom",
       }),
       {
         checkExternal: false,
@@ -184,15 +180,12 @@ describe("getHealth", () => {
 
     expect(status.agent.runtime).toBe("eve");
     expect(status.agent.configured).toBe(true);
-    expect(status.agent.model).toBe("eve-custom");
   });
 
   it("reports an unconfigured Eve Agent runtime without an Eve Agent host", async () => {
     const status = await getHealth(
       loadEnv({
         NODE_ENV: "test",
-        AGENT_RUNTIME: "eve",
-        EVE_AGENT_MODEL: "eve-custom",
       }),
       {
         checkExternal: false,
@@ -201,6 +194,5 @@ describe("getHealth", () => {
 
     expect(status.agent.runtime).toBe("eve");
     expect(status.agent.configured).toBe(false);
-    expect(status.agent.model).toBe("eve-custom");
   });
 });

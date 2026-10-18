@@ -11,7 +11,6 @@ import type {
   AgentInputResponse,
   AgentRunEvent,
 } from "@agent-template/shared";
-import { defaultEveAgentModel, readEveAgentModel } from "./config.js";
 import {
   decodeEveContinuation,
   encodeEveContinuation,
@@ -23,14 +22,8 @@ import {
 import { toEveInputResponses } from "./eve-input-responses.js";
 import { isLoopbackEveHost } from "./trust-policy.js";
 
-export const eveAgentDirectory = "packages/agent-eve/agent";
 export const defaultEveAgentMaxReconnectAttempts = 5;
 export const defaultEveAgentRequestTimeoutMs = 120_000;
-export {
-  defaultEveAgentModel,
-  readEveAgentModel,
-  readEveAnthropicBaseURL,
-} from "./config.js";
 
 export const EveAgentConfigSchema = z.object({
   host: z.string().url().optional(),
@@ -39,7 +32,6 @@ export const EveAgentConfigSchema = z.object({
     .int()
     .nonnegative()
     .default(defaultEveAgentMaxReconnectAttempts),
-  model: z.string().min(1).default(defaultEveAgentModel),
   requestTimeoutMs: z
     .number()
     .int()
@@ -52,8 +44,6 @@ export type EveAgentConfig = z.infer<typeof EveAgentConfigSchema>;
 
 export type EveAgentRuntimeState = {
   configured: boolean;
-  model: string;
-  authoredSurface: string;
   host?: string;
 };
 
@@ -136,7 +126,6 @@ export function parseEveAgentConfig(
       input.EVE_AGENT_MAX_RECONNECT_ATTEMPTS,
       defaultEveAgentMaxReconnectAttempts,
     ),
-    model: readEveAgentModel(input),
     requestTimeoutMs: readNumber(
       input.EVE_AGENT_REQUEST_TIMEOUT_MS,
       defaultEveAgentRequestTimeoutMs,
@@ -152,8 +141,6 @@ export function getEveAgentRuntimeState(
     configured: Boolean(
       config.host && (isLoopbackEveHost(config.host) || config.serviceToken),
     ),
-    model: config.model,
-    authoredSurface: eveAgentDirectory,
     ...(config.host ? { host: config.host } : {}),
   };
 }

@@ -1,16 +1,12 @@
 import { describe, expect, it } from "vitest";
-import { readFileSync } from "node:fs";
 import type { MessageStreamEvent } from "eve/client";
 import {
   defaultEveAgentMaxReconnectAttempts,
-  defaultEveAgentModel,
-  eveAgentDirectory,
   getEveAgentRuntimeStateFromEnv,
   parseEveAgentConfig,
-  readEveAnthropicBaseURL,
-  readEveAgentModel,
   runEveAgent,
 } from "./index.js";
+import { readEveAgentModel } from "./config.js";
 import { encodeEveContinuation } from "./eve-continuation.js";
 
 const meta = { at: "2026-10-18T00:00:00.000Z", id: "evt_1" };
@@ -34,11 +30,10 @@ function responseOf(
 }
 
 describe("Eve Agent runtime", () => {
-  it("points at the package-local authored surface", () => {
+  it("is unconfigured without an Eve Agent host", () => {
     const state = getEveAgentRuntimeStateFromEnv({});
 
     expect(state.configured).toBe(false);
-    expect(state.authoredSurface).toBe(eveAgentDirectory);
   });
 
   it("is configured when the Eve Agent host is set", () => {
@@ -74,123 +69,13 @@ describe("Eve Agent runtime", () => {
     });
   });
 
-  it("depends on the latest official eve package", () => {
-    const packageJson = JSON.parse(
-      readFileSync(new URL("../package.json", import.meta.url), "utf8"),
-    ) as {
-      dependencies?: Record<string, string>;
-    };
-
-    expect(packageJson.dependencies?.eve).toBe("latest");
-  });
-
-  it("loads the authored surface through eve defineAgent", async () => {
-    const agent = (await import("../agent/agent")).default as {
-      model?: { modelId?: string };
-    };
-
-    expect(agent.model?.modelId).toBe(defaultEveAgentModel);
-  });
-
-  it("owns Toolbox as an Eve MCP connection", async () => {
-    const { default: toolbox, eveToolboxToolNames } =
-      await import("../agent/connections/toolbox");
-    const connection = toolbox as {
-      description?: string;
-      tools?: { allow?: readonly string[] };
-      url?: string;
-    };
-
-    expect(connection.url).toBe("http://localhost:15000/mcp");
-    expect(connection.description).toContain("MCP Toolbox read models");
-    expect(connection.tools?.allow).toEqual([...eveToolboxToolNames]);
-  });
-
-  it("defines the Eve channel route auth in the authored surface", async () => {
-    const channel = (await import("../agent/channels/eve")).default as {
-      routes?: readonly unknown[];
-    };
-
-    expect(Array.isArray(channel.routes)).toBe(true);
-  });
-
-  it("authors production limits, a local-safe sandbox, hooks, and privacy-safe telemetry", async () => {
-    const agent = (await import("../agent/agent")).default as {
-      compaction?: { thresholdPercent?: number };
-      limits?: {
-        maxInputTokensPerSession?: number;
-        maxOutputTokensPerSession?: number;
-      };
-    };
-    const sandbox = (await import("../agent/sandbox")).default;
-    const sandboxEnvironment = (await import("../agent/sandbox")).environment;
-    const otel = (await import("../agent/instrumentation/otel")).default;
-    const hook = (await import("../agent/hooks/runtime-audit")).default as {
-      events?: Record<string, unknown>;
-    };
-
-    expect(agent.compaction?.thresholdPercent).toBe(0.75);
-    expect(agent.limits).toMatchObject({
-      maxInputTokensPerSession: 1_000_000,
-      maxOutputTokensPerSession: 100_000,
-    });
-    expect(sandboxEnvironment.provider).toBe("just-bash");
-    expect(sandbox).toBeTypeOf("function");
-    expect(
-      otel.options.tracePolicy?.({
-        agentName: "agent-template-eve",
-        audience: "private",
-        channel: { kind: "http" },
-        environment: "production",
-        principalType: "service",
-      }),
-    ).toEqual({
-      emit: true,
-      recordInputs: false,
-      recordOutputs: false,
-    });
-    expect(hook.events).toHaveProperty("session.failed");
-  });
-
-  it("disables Eve provider-managed web search for Kimi compatibility", async () => {
-    const webSearch = (await import("../agent/tools/web_search")).default as {
-      kind?: string;
-    };
-
-    expect(webSearch.kind).toBe("eve:disabled-tool");
-  });
-
-  it.each(["bash", "read_file", "web_fetch", "web_search", "write_file"])(
-    "disables the production-incompatible default tool %s",
-    async (tool) => {
-      const definition = (await import(`../agent/tools/${tool}.ts`))
-        .default as {
-        kind?: string;
-      };
-
-      expect(definition.kind).toBe("eve:disabled-tool");
-    },
-  );
-
-  it("uses one model source for runtime state and authored surface", () => {
-    const env = { ANTHROPIC_MODEL: "kimi-custom" };
-
-    expect(getEveAgentRuntimeStateFromEnv(env).model).toBe(
-      readEveAgentModel(env),
+  it("parses model configuration for the runtime service", () => {
+    expect(readEveAgentModel({ ANTHROPIC_MODEL: "kimi-custom" })).toBe(
+      "kimi-custom",
     );
-  });
-
-  it("normalizes Anthropic-compatible base URL for the AI SDK provider", () => {
-    expect(
-      readEveAnthropicBaseURL({
-        ANTHROPIC_BASE_URL: "https://api.kimi.com/coding/",
-      }),
-    ).toBe("https://api.kimi.com/coding/v1");
-    expect(
-      readEveAnthropicBaseURL({
-        ANTHROPIC_BASE_URL: "https://api.kimi.com/coding/v1",
-      }),
-    ).toBe("https://api.kimi.com/coding/v1");
+    expect(readEveAgentModel({ EVE_AGENT_MODEL: "eve-custom" })).toBe(
+      "eve-custom",
+    );
   });
 
   it("parses Eve client resilience settings", () => {

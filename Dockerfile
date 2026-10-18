@@ -1,23 +1,59 @@
-FROM node:26.12.0-alpine
-
+FROM node:26.12.0-alpine AS build-base
 WORKDIR /app
-
-COPY package.json pnpm-lock.yaml pnpm-workspace.yaml turbo.json ./
-COPY apps/api/package.json apps/api/package.json
-COPY apps/web/package.json apps/web/package.json
-COPY apps/worker/package.json apps/worker/package.json
-COPY packages/agent/package.json packages/agent/package.json
-COPY packages/agent-claude/package.json packages/agent-claude/package.json
-COPY packages/agent-eve/package.json packages/agent-eve/package.json
-COPY packages/db/package.json packages/db/package.json
-COPY packages/logger/package.json packages/logger/package.json
-COPY packages/shared/package.json packages/shared/package.json
-COPY packages/ui/package.json packages/ui/package.json
-
-RUN npm install --global "$(node -p 'require("./package.json").packageManager')" && pnpm install --frozen-lockfile
-
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
+RUN npm install --global "$(node -p 'require("./package.json").packageManager')"
 COPY . .
+RUN pnpm install --frozen-lockfile
 
-RUN pnpm db:generate && pnpm build
+FROM build-base AS api-build
+RUN pnpm db:generate && pnpm exec turbo build --filter=@agent-template/api
+RUN pnpm --filter @agent-template/api deploy --prod /deploy/api
 
-EXPOSE 13000 13010 14000
+FROM build-base AS worker-build
+RUN pnpm exec turbo build --filter=@agent-template/worker
+RUN pnpm --filter @agent-template/worker deploy --prod /deploy/worker
+
+FROM build-base AS workflow-setup
+ENV NODE_ENV=production
+USER node
+CMD ["pnpm", "--filter", "@agent-template/runtime", "run", "workflow:setup"]
+
+FROM build-base AS runtime-build
+RUN pnpm exec turbo build --filter=@agent-template/runtime
+
+FROM build-base AS web-build
+ARG NEXT_PUBLIC_API_BASE_URL=http://localhost:14000
+ENV NEXT_PUBLIC_API_BASE_URL=$NEXT_PUBLIC_API_BASE_URL
+RUN pnpm exec turbo build --filter=@agent-template/web
+
+FROM node:26.12.0-alpine AS api
+ENV NODE_ENV=production API_HOST=0.0.0.0 API_PORT=14000
+WORKDIR /app
+COPY --from=api-build --chown=node:node /deploy/api ./
+USER node
+EXPOSE 14000
+CMD ["node", "dist/server.js"]
+
+FROM node:26.12.0-alpine AS worker
+ENV NODE_ENV=production
+WORKDIR /app
+COPY --from=worker-build --chown=node:node /deploy/worker ./
+USER node
+CMD ["node", "dist/worker.js"]
+
+FROM node:26.12.0-alpine AS runtime
+ENV NODE_ENV=production HOST=0.0.0.0 PORT=13010
+WORKDIR /app
+COPY --from=runtime-build --chown=node:node /app/apps/runtime/.output ./.output
+USER node
+EXPOSE 13010
+CMD ["node", ".output/server/index.mjs"]
+
+FROM node:26.12.0-alpine AS web
+ENV NODE_ENV=production HOSTNAME=0.0.0.0 PORT=13000
+WORKDIR /app
+COPY --from=web-build --chown=node:node /app/apps/web/.next/standalone ./
+COPY --from=web-build --chown=node:node /app/apps/web/.next/static ./apps/web/.next/static
+USER node
+EXPOSE 13000
+CMD ["node", "apps/web/server.js"]

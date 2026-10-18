@@ -4,7 +4,7 @@
 
 TypeScript Agent 平台模板：`apps/` 放运行进程，`packages/` 放可复用能力。
 
-核心栈：Next.js、Fastify、Prisma/PostgreSQL、Redis、BullMQ、MCP Toolbox、Claude Agent SDK、Eve、Zod、Pino、Vitest。
+核心栈：Next.js、Fastify、Prisma/PostgreSQL、Redis、BullMQ、MCP Toolbox、Eve、Zod、Pino、Vitest。
 
 ## 通用规则
 
@@ -65,28 +65,29 @@ pnpm db:seed
 
 - `apps/web`: 用户界面和浏览器端体验。
 - `apps/api`: HTTP API、健康检查、Agent job intake、Chat SSE。
-- `apps/worker`: BullMQ 后台任务消费和 Worker runtime 装配。
-- `apps/toolbox`: MCP Toolbox `tools.yaml`、数据库 Tool provider 配置和跨 runtime Skill authoring CLI。
+- `apps/worker`: BullMQ 后台任务消费和 Worker process 装配。
+- `apps/runtime`: Eve HTTP 服务、provider、Workflow 与 `agent/` authored surface。
+- `apps/toolbox`: MCP Toolbox `tools.yaml`、数据库 Tool provider 配置和 Eve Skill authoring CLI。
 - `packages/ui`: 共享 React UI 组件和样式工具。
 - `packages/shared`: 前后端共享 Zod schema、类型和常量。
 - `packages/db`: Prisma schema、Prisma Client 和数据库配置。
 - `packages/logger`: Pino logger 封装。
-- `packages/agent`: Agent runtime contract、`AGENT_RUNTIME` selector 和公共入口。
-- `packages/agent-claude`: Claude Agent SDK adapter 和 `agent/` filesystem-authored surface。
-- `packages/agent-eve`: Eve filesystem-first runtime 和 `agent/` authored surface。
+- `packages/agent`: Eve Agent run 的输入校验、环境配置和公共入口。
+- `packages/agent-eve`: Eve HTTP client adapter、事件投影与 continuation 编解码。
 
 ## 架构规则
 
 - 每个明确任务或需求完成后，提交前必须使用 `improve-codebase-architecture` 做一轮代码架构审查。
 - 架构审查产生的候选问题默认按该 skill 的推荐方案落地；只有涉及产品取舍、破坏性变更、成本明显扩大或外部约束无法判断时才向用户确认。
 - 每个架构候选修复后单独提交，全部候选修复并验证完成后再统一推送。
-- `apps/*` 只依赖 `@agent-template/agent` 的公共 runtime 边界，不直接依赖具体 runtime package。
-- Agent runtime 只通过 `AGENT_RUNTIME=claude|eve` 选择；不要从 request 或 job payload 覆盖。
-- Kimi Code 接入 Cloud 和 Eve 都使用 Anthropic-compatible 协议；API Key 只放本地 `.env` 或部署环境变量。
-- `TOOLBOX_URL` 是 Agent runtime 自己持有的 MCP 连接地址，不参与 runtime 选择；不再维护平台级 MCP registry 或 `TOOLBOX_TOOLSET`。
-- Claude runtime 在 `packages/agent-claude/agent/.mcp.json` 和 `agent/.claude/settings.json` 维护 HTTP MCP config 与 allowlist；Eve runtime 在 `packages/agent-eve/agent/connections/toolbox.ts` 维护 filesystem-first MCP connection 和 allowlist。
-- 新增或删除 Toolbox Tool 时，必须同步更新 Claude 与 Eve 两个 runtime 的 allowlist；不要在 `packages/shared` 或 `apps/api` 重新抽平台级 MCP module。
-- API/Web 不提供 `tools/list`、`tools/call`、MCP resource 或 MCP App 代理路由；MCP tool discovery 和调用只发生在选中的 Agent runtime 内。
+- Web、API、Worker、Eve runtime、Toolbox 独立进程和镜像，分别部署与扩缩容；模型凭证只配置在 runtime，API/Worker 仅持有服务连接凭证。
+- API/Worker 只通过 `@agent-template/agent` 调用 Eve HTTP client，不嵌入模型执行；`apps/runtime` 独占 authored surface 和 Workflow 状态。
+- Agent runtime 统一使用 Eve；按 Eve 当前最佳实践实现，删除 runtime 选择器与旧技术栈兼容分支，不维护双轨实现。
+- Kimi Code 接入 Eve 使用 Anthropic-compatible 协议；API Key 只放本地 `.env` 或部署环境变量。
+- `TOOLBOX_URL` 是 Agent runtime 自己持有的 MCP 连接地址；不再维护平台级 MCP registry 或 `TOOLBOX_TOOLSET`。
+- Eve runtime 在 `apps/runtime/agent/connections/toolbox.ts` 维护 filesystem-first MCP connection 和 allowlist。
+- 新增或删除 Toolbox Tool 时，必须同步更新 Eve MCP connection 的 allowlist；不要在 `packages/shared` 或 `apps/api` 重新抽平台级 MCP module。
+- API/Web 不提供 `tools/list`、`tools/call`、MCP resource 或 MCP App 代理路由；MCP tool discovery 和调用只发生在 Eve Agent runtime 内。
 - Queue runtime 暂不抽新 module；等第三个 queue consumer 或可替换 adapter 需求出现再抽。
 
 ## 提交规则

@@ -1,45 +1,16 @@
 name: agent-template
 
-x-runtime-environment: &runtime-environment
+x-agent-client-environment: &agent-client-environment
   NODE_ENV: production
-  AGENT_RUNTIME: ${AGENT_RUNTIME:-claude}
-  DATABASE_URL: postgresql://project_template:project_template@postgres:5432/project_template?schema=public
-  REDIS_URL: redis://redis:6379
-  TOOLBOX_URL: http://toolbox:15000
-  ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
-  ANTHROPIC_AUTH_TOKEN: ${ANTHROPIC_AUTH_TOKEN:-}
-  ANTHROPIC_BASE_URL: ${ANTHROPIC_BASE_URL:-https://api.kimi.com/coding/}
-  ANTHROPIC_MODEL: ${ANTHROPIC_MODEL:-kimi-for-coding}
-  CLAUDE_AGENT_MODEL: ${CLAUDE_AGENT_MODEL:-kimi-for-coding}
-  CLAUDE_AGENT_STATE_DIR: ${CLAUDE_AGENT_STATE_DIR:-/var/lib/agent-template/claude}
-  CLAUDE_AGENT_CONTINUATION_SECRET: ${CLAUDE_AGENT_CONTINUATION_SECRET:-}
-  CLAUDE_AGENT_CONTINUATION_LEASE_MS: ${CLAUDE_AGENT_CONTINUATION_LEASE_MS:-150000}
-  CLAUDE_AGENT_CONTINUATION_TTL_MS: ${CLAUDE_AGENT_CONTINUATION_TTL_MS:-604800000}
-  CLAUDE_AGENT_MAX_TURNS: ${CLAUDE_AGENT_MAX_TURNS:-100}
-  CLAUDE_AGENT_MAX_BUDGET_USD: ${CLAUDE_AGENT_MAX_BUDGET_USD:-5}
-  CLAUDE_AGENT_REQUEST_TIMEOUT_MS: ${CLAUDE_AGENT_REQUEST_TIMEOUT_MS:-120000}
-  EVE_AGENT_HOST: ${EVE_AGENT_HOST:-http://eve-agent:13010}
-  EVE_AGENT_MAX_RECONNECT_ATTEMPTS: ${EVE_AGENT_MAX_RECONNECT_ATTEMPTS:-5}
-  EVE_AGENT_MODEL: ${EVE_AGENT_MODEL:-kimi-for-coding}
-  EVE_AGENT_REQUEST_TIMEOUT_MS: ${EVE_AGENT_REQUEST_TIMEOUT_MS:-120000}
+  EVE_AGENT_HOST: http://runtime:13010
   EVE_AGENT_SERVICE_TOKEN: ${EVE_AGENT_SERVICE_TOKEN:-}
-  EVE_MODEL_CONTEXT_WINDOW_TOKENS: ${EVE_MODEL_CONTEXT_WINDOW_TOKENS:-128000}
-  EVE_COMPACTION_THRESHOLD: ${EVE_COMPACTION_THRESHOLD:-0.75}
-  EVE_MAX_INPUT_TOKENS_PER_SESSION: ${EVE_MAX_INPUT_TOKENS_PER_SESSION:-1000000}
-  EVE_MAX_OUTPUT_TOKENS_PER_SESSION: ${EVE_MAX_OUTPUT_TOKENS_PER_SESSION:-100000}
-  CLAUDE_CODE_AUTO_COMPACT_WINDOW: ${CLAUDE_CODE_AUTO_COMPACT_WINDOW:-262144}
+  EVE_AGENT_REQUEST_TIMEOUT_MS: ${EVE_AGENT_REQUEST_TIMEOUT_MS:-120000}
+  EVE_AGENT_MAX_RECONNECT_ATTEMPTS: ${EVE_AGENT_MAX_RECONNECT_ATTEMPTS:-5}
 
 x-app-service: &app-service
-  build:
-    context: .
-    dockerfile: Dockerfile
-    provenance: false
   restart: unless-stopped
-  depends_on:
-    postgres:
-      condition: service_healthy
-    redis:
-      condition: service_healthy
+  init: true
+  stop_grace_period: 150s
 
 services:
   postgres:
@@ -62,6 +33,14 @@ services:
   redis:
     image: redis:8.10.2-alpine
     restart: unless-stopped
+    command:
+      [
+        "redis-server",
+        "--appendonly",
+        "yes",
+        "--maxmemory-policy",
+        "noeviction",
+      ]
     ports:
       - "16379:6379"
     volumes:
@@ -104,24 +83,25 @@ services:
 
   api:
     <<: *app-service
-    command: pnpm --filter @agent-template/api start
+    build:
+      context: .
+      target: api
     environment:
-      <<: *runtime-environment
+      <<: *agent-client-environment
       API_HOST: 0.0.0.0
       API_PORT: 14000
+      CORS_ORIGIN: ${CORS_ORIGIN:-http://localhost:13000}
+      DATABASE_URL: postgresql://project_template:project_template@postgres:5432/project_template?schema=public
+      REDIS_URL: redis://redis:6379
     depends_on:
       postgres:
         condition: service_healthy
       redis:
         condition: service_healthy
-      toolbox:
-        condition: service_started
-      eve-agent:
+      runtime:
         condition: service_healthy
     ports:
       - "14000:14000"
-    volumes:
-      - claude_state:/var/lib/agent-template/claude
     healthcheck:
       test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:14000/health >/dev/null"]
       interval: 10s
@@ -130,31 +110,54 @@ services:
 
   worker:
     <<: *app-service
-    command: pnpm --filter @agent-template/worker start
+    build:
+      context: .
+      target: worker
     environment:
-      <<: *runtime-environment
+      <<: *agent-client-environment
+      REDIS_URL: redis://redis:6379
+      WORKER_CONCURRENCY: ${WORKER_CONCURRENCY:-1}
     depends_on:
-      postgres:
-        condition: service_healthy
       redis:
         condition: service_healthy
-      toolbox:
-        condition: service_started
-      eve-agent:
+      runtime:
         condition: service_healthy
-    volumes:
-      - claude_state:/var/lib/agent-template/claude
 
-  eve-agent:
-    <<: *app-service
-    command: sh -c "pnpm --filter @agent-template/agent-eve eve:build && pnpm --filter @agent-template/agent-eve eve:start"
+  workflow-setup:
+    build:
+      context: .
+      target: workflow-setup
     environment:
-      <<: *runtime-environment
+      WORKFLOW_POSTGRES_URL: postgresql://project_template:project_template@postgres:5432/project_template
     depends_on:
       postgres:
         condition: service_healthy
-      redis:
-        condition: service_healthy
+    restart: "no"
+
+  runtime:
+    <<: *app-service
+    build:
+      context: .
+      target: runtime
+    environment:
+      NODE_ENV: production
+      HOST: 0.0.0.0
+      PORT: 13010
+      WORKFLOW_POSTGRES_URL: postgresql://project_template:project_template@postgres:5432/project_template
+      WORKFLOW_POSTGRES_WORKER_CONCURRENCY: ${WORKFLOW_POSTGRES_WORKER_CONCURRENCY:-10}
+      WORKFLOW_POSTGRES_MAX_POOL_SIZE: ${WORKFLOW_POSTGRES_MAX_POOL_SIZE:-10}
+      TOOLBOX_URL: http://toolbox:15000
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
+      ANTHROPIC_BASE_URL: ${ANTHROPIC_BASE_URL:-https://api.kimi.com/coding/}
+      EVE_AGENT_MODEL: ${EVE_AGENT_MODEL:-kimi-for-coding}
+      EVE_AGENT_SERVICE_TOKEN: ${EVE_AGENT_SERVICE_TOKEN:-}
+      EVE_MODEL_CONTEXT_WINDOW_TOKENS: ${EVE_MODEL_CONTEXT_WINDOW_TOKENS:-128000}
+      EVE_COMPACTION_THRESHOLD: ${EVE_COMPACTION_THRESHOLD:-0.75}
+      EVE_MAX_INPUT_TOKENS_PER_SESSION: ${EVE_MAX_INPUT_TOKENS_PER_SESSION:-1000000}
+      EVE_MAX_OUTPUT_TOKENS_PER_SESSION: ${EVE_MAX_OUTPUT_TOKENS_PER_SESSION:-100000}
+    depends_on:
+      workflow-setup:
+        condition: service_completed_successfully
       toolbox:
         condition: service_started
     ports:
@@ -171,10 +174,11 @@ services:
 
   web:
     <<: *app-service
-    command: pnpm --filter @agent-template/web start
-    environment:
-      NODE_ENV: production
-      NEXT_PUBLIC_API_BASE_URL: http://localhost:14000
+    build:
+      context: .
+      target: web
+      args:
+        NEXT_PUBLIC_API_BASE_URL: ${NEXT_PUBLIC_API_BASE_URL:-http://localhost:14000}
     depends_on:
       api:
         condition: service_healthy
@@ -182,6 +186,5 @@ services:
       - "13000:13000"
 
 volumes:
-  claude_state:
   postgres18_data:
   redis_data:

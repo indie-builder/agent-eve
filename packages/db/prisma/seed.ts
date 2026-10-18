@@ -29,7 +29,7 @@ const seedEvents: SeedEvent[] = [
     createdAt: new Date("2026-07-04T09:00:02.000Z"),
     payload: {
       runId: "run_support_001",
-      runtime: "claude",
+      runtime: "eve",
       model: "kimi-for-coding",
       reason: "需要通过 Toolbox 读取最近 Agent run 记录。",
     },

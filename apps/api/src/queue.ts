@@ -15,6 +15,8 @@ export function createRedisPingConnection(redisUrl: string) {
 
 export function createAgentQueue(redisUrl: string) {
   return new Queue<AgentJobPayload>(agentQueueName, {
-    connection: createBullMqConnectionOptions(redisUrl)
+    connection: createBullMqConnectionOptions(redisUrl),
+    // Agent jobs create Eve sessions; retrying a failed job could duplicate a session.
+    defaultJobOptions: { attempts: 1 }
   });
 }

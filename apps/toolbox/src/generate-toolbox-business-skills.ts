@@ -86,10 +86,7 @@ const prettierExecutable = join(
 );
 const generatedRoot = mkdtempSync(join(tmpdir(), "toolbox-business-skills-"));
 const installedSkillMarkdown: string[] = [];
-const outputRoots = {
-  claude: join(repositoryRoot, "packages/agent-claude/agent/.claude/skills"),
-  eve: join(repositoryRoot, "packages/agent-eve/agent/skills"),
-};
+const outputRoot = join(repositoryRoot, "apps/runtime/agent/skills");
 
 try {
   for (const skill of businessSkills) {
@@ -118,24 +115,16 @@ try {
     const generatedSkill = join(generatedRoot, skill.name);
     const skillMarkdownPath = join(generatedSkill, "SKILL.md");
     const generatedMarkdown = readFileSync(skillMarkdownPath, "utf8");
-    for (const [runtime, outputRoot] of Object.entries(outputRoots)) {
-      mkdirSync(outputRoot, { recursive: true });
-      const outputSkill = join(outputRoot, skill.name);
-      rmSync(outputSkill, { force: true, recursive: true });
-      mkdirSync(outputSkill, { recursive: true });
-      const outputMarkdown = join(outputSkill, "SKILL.md");
-      writeFileSync(
-        outputMarkdown,
-        adaptSkillMarkdown(
-          generatedMarkdown,
-          skill.workflow,
-          skill.tools,
-          runtime as keyof typeof outputRoots,
-        ),
-        "utf8",
-      );
-      installedSkillMarkdown.push(outputMarkdown);
-    }
+    const outputSkill = join(outputRoot, skill.name);
+    rmSync(outputSkill, { force: true, recursive: true });
+    mkdirSync(outputSkill, { recursive: true });
+    const outputMarkdown = join(outputSkill, "SKILL.md");
+    writeFileSync(
+      outputMarkdown,
+      adaptSkillMarkdown(generatedMarkdown, skill.workflow, skill.tools),
+      "utf8",
+    );
+    installedSkillMarkdown.push(outputMarkdown);
   }
 
   execFileSync(prettierExecutable, ["--write", ...installedSkillMarkdown], {
@@ -150,7 +139,6 @@ function adaptSkillMarkdown(
   markdown: string,
   workflow: string,
   toolNames: string[],
-  runtime: keyof typeof outputRoots,
 ) {
   const usageHeading = "\n## Usage\n";
   const scriptsHeading = "\n## Scripts\n";
@@ -179,23 +167,12 @@ function adaptSkillMarkdown(
 ${workflow}
 ${toolReference}`,
     toolNames,
-    runtime,
   );
 }
 
-function qualifyRuntimeToolNames(
-  markdown: string,
-  toolNames: string[],
-  runtime: keyof typeof outputRoots,
-) {
+function qualifyRuntimeToolNames(markdown: string, toolNames: string[]) {
   return toolNames.reduce(
-    (content, toolName) =>
-      content.replaceAll(
-        toolName,
-        runtime === "claude"
-          ? `mcp__toolbox__${toolName}`
-          : `toolbox__${toolName}`,
-      ),
+    (content, toolName) => content.replaceAll(toolName, `toolbox__${toolName}`),
     markdown,
   );
 }

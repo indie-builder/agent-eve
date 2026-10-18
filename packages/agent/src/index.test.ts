@@ -1,51 +1,32 @@
 import { describe, expect, it } from "vitest";
 import {
-  defaultAgentRuntimeName,
-  defaultClaudeAgentModel,
-  defaultEveAgentModel,
   getAgentRuntimeStateFromEnv,
   parseAgentRuntimeEnv,
   runAgent,
 } from "./index.js";
 
-describe("Agent runtime selector", () => {
-  it("defaults to the Claude Agent runtime", () => {
+describe("Agent runtime seam", () => {
+  it("reports Eve as the only Agent runtime", () => {
     const state = getAgentRuntimeStateFromEnv({});
-
-    expect(state.runtime).toBe(defaultAgentRuntimeName);
-    expect(state.configured).toBe(false);
-    expect(state.model).toBe(defaultClaudeAgentModel);
-  });
-
-  it("selects the Eve Agent runtime from AGENT_RUNTIME", () => {
-    const state = getAgentRuntimeStateFromEnv({ AGENT_RUNTIME: "eve" });
 
     expect(state.runtime).toBe("eve");
     expect(state.configured).toBe(false);
   });
 
-  it("keeps runtime-specific env config behind the Agent runtime env interface", () => {
-    expect(parseAgentRuntimeEnv({})).toMatchObject({
-      AGENT_RUNTIME: defaultAgentRuntimeName,
-      ANTHROPIC_MODEL: defaultClaudeAgentModel,
-      CLAUDE_AGENT_MODEL: defaultClaudeAgentModel,
-      EVE_AGENT_MODEL: defaultEveAgentModel,
-    });
+  it("parses Eve Agent runtime env config", () => {
+    expect(parseAgentRuntimeEnv({})).toEqual({});
 
     expect(
       getAgentRuntimeStateFromEnv({
-        AGENT_RUNTIME: "eve",
         EVE_AGENT_HOST: "http://127.0.0.1:13000",
-        EVE_AGENT_MODEL: "eve-custom",
       }),
     ).toMatchObject({
       runtime: "eve",
       configured: true,
-      model: "eve-custom",
     });
   });
 
-  it("runs an Agent run through the selected Agent runtime seam", async () => {
+  it("runs an Agent run through the Eve runtime seam", async () => {
     const events: unknown[] = [];
 
     await expect(
@@ -54,9 +35,7 @@ describe("Agent runtime selector", () => {
           prompt: "Summarize this template",
         },
         {
-          AGENT_RUNTIME: "eve",
           EVE_AGENT_HOST: "http://127.0.0.1:13000",
-          EVE_AGENT_MODEL: "eve-custom",
         },
         {
           runEve: async (_input, _config, options) => {
@@ -81,7 +60,6 @@ describe("Agent runtime selector", () => {
       promptLength: 23,
       runtime: "eve",
       configured: true,
-      model: "eve-custom",
       status: "completed",
       events: [
         { kind: "text", text: "Working" },
@@ -94,45 +72,11 @@ describe("Agent runtime selector", () => {
     expect(events).toEqual([{ kind: "text", text: "Working" }]);
   });
 
-  it("passes Toolbox tool provider env through to the Cloud Agent runtime", async () => {
-    await expect(
-      runAgent(
-        {
-          prompt: "List recent agent runs",
-        },
-        {
-          ANTHROPIC_AUTH_TOKEN: "test-token",
-          TOOLBOX_URL: "http://toolbox:15000",
-        },
-        {
-          runClaude: async (_input, config) => {
-            expect(config).toMatchObject({
-              authToken: "test-token",
-              toolboxUrl: "http://toolbox:15000",
-            });
-
-            return {
-              status: "completed",
-              events: [{ kind: "done", result: "Done" }],
-              output: "Done",
-              sessionId: "claude-session-1",
-            };
-          },
-        },
-      ),
-    ).resolves.toMatchObject({
-      configured: true,
-      events: [{ kind: "done", result: "Done" }],
-      runtime: "claude",
-      status: "completed",
-    });
-  });
-
   it("rejects invalid Agent run input at the Agent runtime seam", async () => {
     await expect(runAgent({ prompt: "" }, {})).rejects.toThrow();
   });
 
-  it("passes opaque continuation and input responses to Claude", async () => {
+  it("passes opaque continuation and input responses to Eve", async () => {
     const continuation = { token: "opaque-token" };
     const responses = [
       {
@@ -148,15 +92,15 @@ describe("Agent runtime selector", () => {
           continuation,
           responses,
         },
-        { AGENT_RUNTIME: "claude", ANTHROPIC_AUTH_TOKEN: "test-token" },
+        { EVE_AGENT_HOST: "http://127.0.0.1:13000" },
         {
-          runClaude: async (input) => {
+          runEve: async (input) => {
             expect(input).toEqual({ continuation, responses });
             return {
               status: "waiting",
               events: [{ kind: "waiting" }],
               output: "",
-              sessionId: "claude-session-1",
+              sessionId: "eve-session-1",
               continuation,
             };
           },
@@ -164,7 +108,7 @@ describe("Agent runtime selector", () => {
       ),
     ).resolves.toMatchObject({
       continuation,
-      runtime: "claude",
+      runtime: "eve",
       status: "waiting",
     });
   });

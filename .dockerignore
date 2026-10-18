@@ -9,3 +9,6 @@ packages/db/generated
 .env
 .env.local
 *.log
+**/.eve
+**/.output
+**/.workflow-data

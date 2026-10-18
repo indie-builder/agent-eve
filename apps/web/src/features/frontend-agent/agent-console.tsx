@@ -176,7 +176,7 @@ export function AgentConsole() {
           </div>
           {result ? (
             <p className="mt-3 text-xs text-slate-500">
-              Runtime: {result.runtime} / Model: {result.model}
+              Runtime: {result.runtime}
             </p>
           ) : null}
         </section>

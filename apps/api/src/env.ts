@@ -8,7 +8,6 @@ export const EnvSchema = AgentRuntimeEnvSchema.extend({
     .default("development"),
   DATABASE_URL: z.string().url().default(defaultDatabaseUrl),
   REDIS_URL: z.string().url().default("redis://localhost:16379"),
-  TOOLBOX_URL: z.string().url().default("http://localhost:15000"),
   API_HOST: z.string().default("0.0.0.0"),
   API_PORT: z.coerce.number().int().positive().default(14000),
   CORS_ORIGIN: z.string().default("http://localhost:13000"),

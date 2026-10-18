@@ -4,11 +4,7 @@ import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
 
 const repositoryRoot = fileURLToPath(new URL("../../..", import.meta.url));
-const eveSkillsRoot = join(repositoryRoot, "packages/agent-eve/agent/skills");
-const claudeSkillsRoot = join(
-  repositoryRoot,
-  "packages/agent-claude/agent/.claude/skills",
-);
+const eveSkillsRoot = join(repositoryRoot, "apps/runtime/agent/skills");
 
 const skills = [
   {
@@ -36,22 +32,17 @@ const skills = [
 ];
 
 describe("Toolbox business skill authoring", () => {
-  it.each(skills)("installs $name for Eve and Claude", ({ name, tools }) => {
+  it.each(skills)("installs $name for Eve", ({ name, tools }) => {
     const eveSkill = readSkill(eveSkillsRoot, name);
-    const claudeSkill = readSkill(claudeSkillsRoot, name);
 
     expect(eveSkill).toContain(`name: ${name}`);
-    expect(claudeSkill).toContain(`name: ${name}`);
     expect(eveSkill).toContain("Agent runtime 自己维护的 MCP connection");
-    expect(claudeSkill).toContain("Agent runtime 自己维护的 MCP connection");
 
     for (const tool of tools) {
       expect(eveSkill).toContain(`toolbox__${tool}`);
-      expect(claudeSkill).toContain(`mcp__toolbox__${tool}`);
     }
 
     expect(existsSync(join(eveSkillsRoot, name, "scripts"))).toBe(false);
-    expect(existsSync(join(claudeSkillsRoot, name, "scripts"))).toBe(false);
   });
 });
 

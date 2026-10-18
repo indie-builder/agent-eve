@@ -14,7 +14,7 @@ export default async function Home() {
             <div>
               <h1 className="text-4xl font-semibold tracking-normal text-slate-950">项目模板已就绪</h1>
               <p className="mt-3 max-w-2xl text-base leading-7 text-slate-600">
-                Next.js、Fastify、BullMQ、Prisma、Redis、Claude Agent runtime 和 Eve Agent runtime 已按 monorepo 结构拆分。
+                Next.js、Fastify、BullMQ、Prisma、Redis、Eve Agent runtime 已按 monorepo 结构拆分。
               </p>
             </div>
             <div className="flex flex-wrap gap-2">

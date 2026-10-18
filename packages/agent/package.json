@@ -12,7 +12,6 @@
     "test": "vitest run"
   },
   "dependencies": {
-    "@agent-template/agent-claude": "workspace:*",
     "@agent-template/agent-eve": "workspace:*",
     "@agent-template/shared": "workspace:*",
     "zod": "^4.6.7"

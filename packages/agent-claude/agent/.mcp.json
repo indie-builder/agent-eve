@@ -1,8 +1,0 @@
-{
-  "mcpServers": {
-    "toolbox": {
-      "type": "http",
-      "url": "${CLAUDE_TOOLBOX_MCP_URL:-http://localhost:15000/mcp}"
-    }
-  }
-}

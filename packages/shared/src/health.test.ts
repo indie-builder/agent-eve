@@ -20,9 +20,8 @@ describe("createHealthStatus", () => {
         status: "ready",
       },
       agent: {
-        runtime: "claude",
+        runtime: "eve",
         configured: false,
-        model: "kimi-for-coding",
       },
     });
 

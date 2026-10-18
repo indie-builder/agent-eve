@@ -1,11 +1,11 @@
 # Agent Template
 
-一个基于 pnpm Workspace 和 Turborepo 的 TypeScript 7 项目模板，包含 Next.js 前端、Fastify API、BullMQ Worker、Prisma/PostgreSQL、Redis、MCP Toolbox、Claude Agent SDK、Zod、Pino 和 Vitest。
+一个基于 pnpm Workspace 和 Turborepo 的 TypeScript 7 项目模板，包含 Next.js 前端、Fastify API、BullMQ Worker、Prisma/PostgreSQL、Redis、MCP Toolbox、Eve、Zod、Pino 和 Vitest。
 
 ## 技术栈
 
 - 前端：pnpm + TypeScript 7 + Next.js + React + Tailwind CSS + shadcn/ui + Vitest
-- 后端：TypeScript 7 + Fastify + Prisma + PostgreSQL + Redis + BullMQ + MCP Toolbox + Claude Agent SDK + Eve + Zod + Pino + Vitest
+- 后端：TypeScript 7 + Fastify + Prisma + PostgreSQL + Redis + BullMQ + MCP Toolbox + Eve + Zod + Pino + Vitest
 - 工程化：pnpm Workspace + Turborepo
 
 开发环境使用 Node.js 26.12.0（`.nvmrc`）和 `package.json` 声明的 pnpm 版本。使用 nvm 时先运行 `nvm install && nvm use`。依赖跟进最新稳定版；大版本升级直接迁移代码，不保留旧版双轨实现。
@@ -70,34 +70,34 @@ apps/
   web/       Next.js + React + Tailwind CSS
   api/       Fastify HTTP API
   worker/    BullMQ 后台任务进程
+  runtime/   Eve HTTP 服务 + agent authored surface
   toolbox/   MCP Toolbox tools.yaml + Skill authoring CLI
 packages/
   ui/            shadcn/ui 风格共享组件
   db/            Prisma schema 和 Prisma Client
   logger/        Pino logger 封装
   agent/         Agent runtime 公共边界
-  agent-claude/  Claude Agent SDK adapter + filesystem-authored surface
-  agent-eve/     Eve runtime
+  agent-eve/     Eve HTTP client adapter
   shared/        共享 Zod schema 和 TypeScript 类型
 ```
 
 `apps/toolbox/tools.yaml` 定义生产 Agent 可加载的数据库工具。默认 group 是 `agent_template_read_model`：保留 `TemplateEvent` 的只读运行观测，同时提供合成电商的日销售、渠道、商品排行、订单详情和履约异常查询。`pnpm db:seed` 会写入 96 个脱敏客户、24 个商品和 600 个确定性订单；完整的参数、索引和 MCP 验证命令见 [apps/toolbox/README.md](apps/toolbox/README.md)。prebuilt generic tools 仅用于开发期探索，不作为生产 Agent 默认能力。
 
-MCP 连接由各 Agent runtime 自己维护：Claude 使用 `packages/agent-claude/agent/.mcp.json` 和 `agent/.claude/settings.json`，Eve 使用 `packages/agent-eve/agent/connections/toolbox.ts`。Claude 的稳定指令位于 `agent/CLAUDE.md`，业务 Skill 位于 `agent/.claude/skills/`；两套 runtime 都从 `TOOLBOX_URL` 读取 endpoint，API 和 Web 不维护 MCP registry 或代理 tool/resource 请求。
+Eve 在 `apps/runtime/agent/connections/toolbox.ts` 维护 MCP connection 和 allowlist，从 `TOOLBOX_URL` 读取 endpoint。稳定指令位于 `agent/instructions.md`，业务 Skill 位于 `agent/skills/`；API 和 Web 不维护 MCP registry 或代理 tool/resource 请求。
 
-Kimi Code 通过 Anthropic-compatible 协议接入两套 Agent runtime：
+Kimi Code 通过 Anthropic-compatible 协议接入 Eve Agent runtime：
 
 ```bash
 ANTHROPIC_API_KEY=<your-kimi-api-key>
 ANTHROPIC_BASE_URL=https://api.kimi.com/coding/
 ANTHROPIC_MODEL=kimi-for-coding
-CLAUDE_AGENT_MODEL=kimi-for-coding
 EVE_AGENT_MODEL=kimi-for-coding
 EVE_AGENT_HOST=http://localhost:13010
 EVE_AGENT_SERVICE_TOKEN=
-CLAUDE_CODE_AUTO_COMPACT_WINDOW=262144
 ```
 
-`AGENT_RUNTIME=claude|eve` 只通过环境变量选择。未配置 API Key 时，API 仍可启动，`/health` 会显示当前 runtime 配置状态。
+项目只使用 Eve，不再配置 runtime selector。API/Worker 不依赖模型 API Key；`/health` 显示 Eve client 连接配置状态，模型凭证由独立 runtime 持有。
 
-Claude 与 Eve 都使用 runtime-neutral opaque continuation 支持多轮续接和结构化 HITL，并把 Tool、subagent、compaction 和 token usage 转换为统一运行事件。Claude 通过持久 transcript、签名 continuation 和官方 deferred Tool resume 工作流续接，完整安全面、预算和 Eval 说明见 [packages/agent-claude/README.md](packages/agent-claude/README.md)。Eve 非 loopback 的 `EVE_AGENT_HOST`（包括 Docker Compose 中的 `http://eve-agent:13010`）必须为 API/Worker 和 Eve Agent 配置同一个高熵 `EVE_AGENT_SERVICE_TOKEN`；production 不启用 `localDev()` Host fallback，缺少凭证时会 fail closed。Eve 说明见 [packages/agent-eve/README.md](packages/agent-eve/README.md)。
+Eve 使用 opaque continuation 支持多轮续接和结构化 HITL，并把 Tool、subagent、compaction 和 token usage 转换为统一运行事件。Eve 非 loopback 的 `EVE_AGENT_HOST`（包括 Docker Compose 中的 `http://eve-agent:13010`）必须为 API/Worker 和 Eve Agent 配置同一个高熵 `EVE_AGENT_SERVICE_TOKEN`；production 不启用 `localDev()` Host fallback，缺少凭证时会 fail closed。Eve 说明见 [packages/agent-eve/README.md](packages/agent-eve/README.md)。
+
+服务独立部署、镜像 target、配置归属与扩容约束见 [部署架构](docs/deployment.md)。

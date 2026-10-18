@@ -8,7 +8,7 @@
 
 - 健康检查响应 schema 放这里。
 - BullMQ job name、queue name、Agent job payload schema 和 Agent job accepted metadata schema 放这里。
-- Agent run input/result schema、Agent run event protocol 和 artifact schema 放这里。
+- Agent run input/result schema、Agent run event protocol 和 artifact schema 放这里；result 的 `runtime` 固定为 `eve`。
 - 多轮状态只暴露 opaque Agent continuation，不暴露具体 runtime 的 session/cursor 字段；HITL 使用通用 input response schema。
 - Redis URL 到 BullMQ connection options 的纯解析放这里。
 - 导出的类型应由 schema 推导，避免 schema 和 type 分叉。
