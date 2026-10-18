@@ -7,7 +7,8 @@
 ## 能力边界
 
 - Toolbox server 是独立 Tool provider，不属于 Eve Agent runtime。
-- `tools.yaml` 只定义 source、tool 和 group；`src/` 只放从这些声明生成 runtime Skill 的 authoring CLI，不放业务运行时代码。
+- `tools.yaml` 只定义 source、tool 和 group；`src/skills/generate.ts` 是从这些声明生成 runtime Skill 的 authoring CLI，不放业务运行时代码。
+- `src/skills/generate.test.ts` 检查工具声明、生成的 Skill 与 runtime allowlist 的合同；构建产物保留在 `dist/skills/generate.js`，与源码保持相同目录深度，使 `import.meta.url` 的根目录计算一致。
 - 生产 Agent 只使用 Eve runtime allowlist 显式允许的自定义 Tool，不使用 prebuilt generic tools。
 - 新增或删除 Tool 时同步更新 `apps/runtime/agent/connections/toolbox.ts`。
 - Eve Skill 生成只由本 module 负责；Eve runtime 持有生成产物。

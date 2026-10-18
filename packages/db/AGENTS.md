@@ -8,8 +8,8 @@
 
 - `prisma/schema.prisma` 是数据模型来源。
 - `prisma.config.ts` 管理 Prisma 7 datasource 配置。
-- `prisma/seed.ts` 写入确定性的 Agent 平台示例数据。
-- `src/index.ts` 导出可复用 Prisma Client。
+- `prisma/seed.ts` 只负责幂等写入示例数据并关闭连接；数据定义放 `prisma/fixtures/template-events.ts` 和 `prisma/fixtures/ecommerce.ts`。
+- `src/postgres/client.ts` 导出可复用 Prisma Client；`src/postgres/config.ts` 解析数据库连接配置，分别对应 package 根入口与 `./config`。
 - 默认数据库连接使用 `localhost:15432`，避免和本机默认 PostgreSQL 冲突。
 - Prisma 目录内的 schema、migration、seed 规则见 `prisma/AGENTS.md`。
 

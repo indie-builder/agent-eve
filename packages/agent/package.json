@@ -3,10 +3,10 @@
   "private": true,
   "type": "module",
   "exports": {
-    ".": "./src/index.ts"
+    ".": "./src/run/agent-run.ts"
   },
   "scripts": {
-    "build": "tsdown src/index.ts --format esm --no-dts",
+    "build": "tsdown src/run/agent-run.ts --format esm --no-dts",
     "lint": "oxlint --deny-warnings src",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "test": "vitest run"

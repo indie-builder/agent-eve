@@ -1,7 +1,7 @@
 import { defineConfig } from "tsdown";
 
 export default defineConfig({
-  entry: ["src/worker.ts"],
+  entry: { worker: "src/bootstrap/worker.ts" },
   format: ["esm"],
   fixedExtension: false,
   platform: "node",

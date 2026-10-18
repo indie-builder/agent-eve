@@ -4,7 +4,7 @@ export {
   createHealthStatus,
   type DependencyState,
   type HealthStatus,
-} from "./health";
+} from "./health/contracts";
 export {
   AgentJobNameSchema,
   AgentJobAcceptedSchema,
@@ -14,7 +14,7 @@ export {
   type AgentJobAccepted,
   type AgentJobName,
   type AgentJobPayload,
-} from "./agent-job";
+} from "./agent-jobs/contracts";
 export {
   AgentRunInputSchema,
   AgentRunResultSchema,
@@ -24,7 +24,7 @@ export {
   type AgentInputResponse,
   type AgentRunInput,
   type AgentRunResult,
-} from "./agent-run";
+} from "./agent-run/contracts";
 export {
   AgentArtifactSchema,
   AgentInputRequestSchema,
@@ -32,4 +32,4 @@ export {
   type AgentArtifact,
   type AgentInputRequest,
   type AgentRunEvent,
-} from "./agent-run-events";
+} from "./agent-run/events";

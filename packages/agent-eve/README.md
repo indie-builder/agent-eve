@@ -7,7 +7,9 @@
 - 解析 `EVE_AGENT_HOST`、service token、重连次数和请求超时。
 - 通过官方 `eve/client` 创建或续接 session，并使用 opaque continuation 往返 `ClientSessionState`。
 - 把 Eve stream 事件、结构化 HITL response、subagent、compaction 和 usage 转换为 shared `AgentRunEvent`。
-- 导出 `./config`（模型名解析）和 `./trust-policy`（loopback 判断、token 摘要比较）供 runtime 复用；auth walk 与 provider 创建不由本包提供。
+- `src/client/run-agent.ts` 是 package 根入口，编排客户端执行，并显式再导出 `src/client/config.ts` 的连接配置解析、默认值和公共类型。
+- `src/protocol/continuation.ts`、`input-responses.ts`、`turn-projection.ts` 负责协议转换；`src/client/run-agent.test.ts` 与 `src/protocol/protocol.test.ts` 保留执行与协议 contract。
+- `src/security/trust-policy.ts` 通过 `./trust-policy` 导出 loopback 判断、token 摘要比较，供 runtime 复用。模型名解析、auth walk 与 provider 创建归 `apps/runtime`。
 
 ## 运行配置
 

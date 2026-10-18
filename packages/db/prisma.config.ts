@@ -1,6 +1,6 @@
 import { config } from "dotenv";
 import { defineConfig } from "prisma/config";
-import { getDatabaseUrl } from "./src/config.js";
+import { getDatabaseUrl } from "./src/postgres/config.js";
 
 config({ path: "../../.env" });
 config({ path: "../../.env.local", override: true });

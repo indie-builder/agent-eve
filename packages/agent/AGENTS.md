@@ -8,6 +8,7 @@
 
 - `AgentRuntimeEnvSchema` / `parseAgentRuntimeEnv` 统一维护 Eve HTTP client 连接环境变量。
 - `getAgentRuntimeStateFromEnv` 返回固定 runtime `eve`、连接配置状态。
+- package 根入口直接指向 `src/run/agent-run.ts`；同目录 `agent-run.test.ts` 验证公共 contract。
 - `runAgent` 是 Chat SSE 和 Worker 共同调用的 Agent run execution seam，负责 run input validation、Eve dispatch 和 execution result assembly。
 - 具体实现委派给 `@agent-template/agent-eve`。
 - runtime adapter 已产生的 Agent run event 通过 `AgentRunResult.events` 透出；这里不新增持久化。

@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { ZodError } from "zod";
-import { AgentRunInputSchema } from "./agent-run";
-import { createBullMqConnectionOptions } from "./queue.js";
+import { AgentRunInputSchema } from "./agent-run/contracts";
+import { createBullMqConnectionOptions } from "./queue/connection-options.js";
 
 describe("Agent run input contract", () => {
   it("rejects runs without a prompt or input responses", () => {

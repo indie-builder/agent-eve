@@ -6,11 +6,13 @@
 
 ## 能力边界
 
-- 健康检查响应 schema 放这里。
-- BullMQ job name、queue name、Agent job payload schema 和 Agent job accepted metadata schema 放这里。
-- Agent run input/result schema、Agent run event protocol 和 artifact schema 放这里；result 的 `runtime` 固定为 `eve`。
+- `src/index.ts` 保留浏览器可用公共入口；`src/node.ts` 保留 Node 公共入口，不为内部文件新增 barrel。
+- `src/health/contracts.ts` 放健康检查响应 schema。
+- `src/agent-jobs/contracts.ts` 放 BullMQ job name、queue name、Agent job payload schema 和 Agent job accepted metadata schema。
+- `src/agent-run/contracts.ts` 放 Agent run input/result schema；`src/agent-run/events.ts` 放 event protocol 和 artifact schema；result 的 `runtime` 固定为 `eve`。
 - 多轮状态只暴露 opaque Agent continuation，不暴露具体 runtime 的 session/cursor 字段；HITL 使用通用 input response schema。
-- Redis URL 到 BullMQ connection options 的纯解析放这里。
+- `src/queue/connection-options.ts` 放 Redis URL 到 BullMQ connection options 的纯解析，由 `src/node.ts` 导出。
+- `src/contracts.test.ts` 保留跨能力契约检查。
 - 导出的类型应由 schema 推导，避免 schema 和 type 分叉。
 
 ## 不应该做

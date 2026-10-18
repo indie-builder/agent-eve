@@ -6,9 +6,14 @@
 
 ## 能力边界
 
-- HTTP 路由和 Fastify app 装配放在这里。
+- `src/bootstrap/server.ts` 负责监听与进程退出；`src/bootstrap/env.ts` 解析环境变量。
+- `src/bootstrap/app.ts` 保留 `buildApp` 注入 interface，选择生产/disabled health adapter、绑定 Redis URL 的 queue factory，只装配 CORS 和三个 feature route module。
+- `src/modules/agent-chat/http/routes.ts` 负责 Chat 输入校验、SSE headers、事件编码和错误收尾，直接调用注入的 `runAgent`，不增加透传 application。
+- `src/modules/agent-jobs/http/routes.ts` 负责 HTTP 校验与 202 响应；`application/intake.ts` 通过 `AgentJobIntake.enqueue(input)` 封装校验、入队、acceptance metadata 校验和 finally close，只依赖无参数 `createQueue` factory。
+- `src/modules/agent-jobs/infrastructure/bullmq.ts` 创建 BullMQ queue；route/application 不依赖 Redis URL 或 BullMQ。
+- `src/modules/health/http/routes.ts` 注册健康检查；`application/get-health.ts` 只依赖 `HealthAdapters` 聚合状态，不 import infrastructure；`infrastructure/dependency-checks.ts` 持有 PostgreSQL/Redis ping、超时和 Redis disconnect。
+- 每个 feature 通过 Fastify `register` 封装，不引入 DI 库或无意义 controller/service。
 - 数据库访问通过 `@agent-template/db`。
-- Agent job intake 通过 `AgentJobIntake.enqueue(input)` 暴露给 route；BullMQ queue lifecycle 留在 `src/agent-job-intake.ts`。
 - Agent Chat 通过 `POST /agent/chat` 启动 Agent run，并用 SSE 返回 Agent run event 和最终结果。
 - 任务队列使用 BullMQ，并通过 `@agent-template/shared` 的队列名和 payload schema 保持类型一致。
 - 日志使用 `@agent-template/logger`。

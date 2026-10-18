@@ -1,9 +1,9 @@
 import { test as base } from "@e2e-dev/web";
-import { runAgent } from "../packages/agent/src/index";
-import type { AgentRunEvent } from "../packages/shared/src/index";
-import { buildApp } from "../apps/api/src/app";
-import { loadEnv } from "../apps/api/src/env";
-import { createAgentJobIntake } from "../apps/api/src/agent-job-intake";
+import { runAgent } from "@agent-template/agent";
+import type { AgentRunEvent } from "@agent-template/shared";
+import { buildApp } from "../apps/api/src/bootstrap/app";
+import { loadEnv } from "../apps/api/src/bootstrap/env";
+import { createAgentJobIntake } from "../apps/api/src/modules/agent-jobs/application/intake";
 
 // 仅替换外部 runtime/queue seam；HTTP、校验、SSE 与前端代码走生产实现。
 export const test = base.extend<{ api: string }>({
@@ -16,14 +16,11 @@ export const test = base.extend<{ api: string }>({
         EVE_AGENT_HOST: "http://localhost:13010",
       }),
       checkExternal: false,
-      agentJobIntake: createAgentJobIntake({
-        redisUrl: "redis://localhost:16379",
-        createQueue: () => ({
-          name: "agent-jobs",
-          add: async () => ({ id: "acceptance-job" }),
-          close: async () => {},
-        }),
-      }),
+      agentJobIntake: createAgentJobIntake(() => ({
+        name: "agent-jobs",
+        add: async () => ({ id: "acceptance-job" }),
+        close: async () => {},
+      })),
       runAgent: (input, env, options) =>
         runAgent(input, env, {
           ...options,

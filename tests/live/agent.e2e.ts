@@ -1,6 +1,6 @@
 import { test } from "@e2e-dev/web";
 import { expect } from "e2e";
-import { AgentRunResultSchema } from "../../packages/shared/src/index";
+import { AgentRunResultSchema } from "@agent-template/shared";
 
 test("真实 Web、API 与 Eve 完成回复和会话续接", async ({ app, browser, screen }) => {
   const apiUrl = process.env.E2E_LIVE_API_URL;

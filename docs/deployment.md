@@ -14,6 +14,8 @@
 
 调用关系：Web → API；Chat 由 API → Eve HTTP stream；后台 job 由 API → Redis/BullMQ → Worker → Eve；Eve → Toolbox → PostgreSQL。`packages/agent` 提供输入校验和公共 Agent run interface，`packages/agent-eve` 封装 HTTP client、事件投影与 opaque continuation，不在 API/Worker 进程执行模型。
 
+源码内部组织见 [后端模块与目录分层](backend-architecture.md)。`bootstrap`负责启动装配，能力module组织HTTP、应用流程和外部adapter；这不改变下述部署入口和独立扩缩容方式。
+
 ## 镜像与启动
 
 根 Dockerfile 提供 `web`、`api`、`worker`、`runtime` 四个独立 final target。Compose 为每个服务选择对应 target；Toolbox、PostgreSQL、Redis 使用各自官方镜像。构建阶段完成编译，生产容器直接启动产物，不在启动时安装依赖或运行 Eve build。
@@ -55,6 +57,6 @@ API 和 Worker 在 SIGTERM/SIGINT 时执行关闭流程。Compose 配置 init �
 
 ## 本地验证与部署验收
 
-默认本地验证：`pnpm db:generate`、`pnpm lint`、`pnpm typecheck`、`pnpm test`、`pnpm build`、`pnpm --filter @agent-template/runtime info` 和 `eval:list`。
+默认本地验证：`pnpm db:generate`、`pnpm lint`、`pnpm typecheck`、`pnpm test`、`pnpm build`、`pnpm --filter @agent-template/runtime run info` 和 `eval:list`。
 
 实际容器部署还应验收目标平台的镜像构建、服务就绪、真实 Agent turn、SSE/HITL 续接、runtime 重启恢复；共享 world 多副本另测跨副本恢复。数据库迁移作为独立部署步骤执行，不在每个 API/Worker 副本启动时竞争执行。

@@ -90,6 +90,9 @@ pnpm db:seed
 
 ## 架构规则
 
+- 后端按能力module组织，module内部按真实职责区分HTTP、application和infrastructure；bootstrap只做装配与启动。新增能力或迁移源码前读取 `docs/backend-architecture.md`，同步imports、package exports、构建入口和验收fixtures。
+- 数据库连接/schema/migrations/seed数据分别归位；业务数据访问归所属module，出现真实查询/事务时才增加data-access repository。Eve authored surface保持框架发现布局。
+
 - 每个明确任务或需求完成后，提交前必须使用 `mattpocock-skills:improve-codebase-architecture` 做一轮代码架构审查。
 - 架构审查产生的候选问题默认按该 skill 的推荐方案落地；只有涉及产品取舍、破坏性变更、成本明显扩大或外部约束无法判断时才向用户确认。
 - 架构报告默认中文HTML，标题、字段、图例和最终提问用中文；保留 module/interface/depth/seam/adapter/leverage/locality 和 Strong/Worth exploring/Speculative 原词。

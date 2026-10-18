@@ -40,7 +40,7 @@ Toolbox 官方的 `skills-generate` 会把自定义 Group 转换为 Agent Skill�
 pnpm --filter @agent-template/toolbox skills:generate
 ```
 
-生成器使用锁定的 `@toolbox-sdk/server` 读取 [tools.yaml](./tools.yaml)，再把适配后的 `SKILL.md` 写入 `apps/runtime/agent/skills/`。Eve 使用 `toolbox__<tool>`。Skill 只负责按需加载业务流程，实际执行由对应 Agent runtime 的 MCP connection 和 allowlist 管理；官方生成的数据库直连脚本不会进入 Agent 运行目录。
+生成器入口是 `src/skills/generate.ts`，使用锁定的 `@toolbox-sdk/server` 读取 [tools.yaml](./tools.yaml)，再把适配后的 `SKILL.md` 写入 `apps/runtime/agent/skills/`。`pnpm --filter @agent-template/toolbox build` 输出 `dist/skills/generate.js`，与源码保持相同目录深度，使 `import.meta.url` 定位 package 和仓库根目录的结果一致；`src/skills/generate.test.ts` 保留工具声明、Skill 引用与 runtime allowlist 的合同检查。Eve 使用 `toolbox__<tool>`。Skill 只负责按需加载业务流程，实际执行由对应 Agent runtime 的 MCP connection 和 allowlist 管理；官方生成的数据库直连脚本不会进入 Agent 运行目录。
 
 ## 电商 MCP Docker 集成验证（仅显式要求时）
 
@@ -118,7 +118,7 @@ docker compose exec toolbox /toolbox --config /app/tools.yaml invoke list-agent-
 pnpm --filter @agent-template/toolbox skills:generate
 pnpm --filter @agent-template/shared test
 pnpm --filter @agent-template/agent-eve test
-pnpm --filter @agent-template/runtime info
+pnpm --filter @agent-template/runtime run info
 ```
 
 只有明确要求容器集成验证时，才运行前述 Docker 命令。

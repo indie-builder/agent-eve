@@ -88,6 +88,8 @@ packages/
   shared/        共享 Zod schema 和 TypeScript 类型
 ```
 
+后端源码按能力module组织，module内体现HTTP、应用编排和基础设施层；启动装配归 `bootstrap/`。数据库连接、Prisma模型/迁移、seed数据分别维护。完整目标目录、依赖方向和数据访问规则见 [后端模块与目录分层](docs/backend-architecture.md)。
+
 `apps/toolbox/tools.yaml` 定义生产 Agent 可加载的数据库工具。默认 group 是 `agent_template_read_model`：保留 `TemplateEvent` 的只读运行观测，同时提供合成电商的日销售、渠道、商品排行、订单详情和履约异常查询。`pnpm db:seed` 会写入 96 个脱敏客户、24 个商品和 600 个确定性订单；完整的参数、索引和 MCP 验证命令见 [apps/toolbox/README.md](apps/toolbox/README.md)。prebuilt generic tools 仅用于开发期探索，不作为生产 Agent 默认能力。
 
 Eve 在 `apps/runtime/agent/connections/toolbox.ts` 维护 MCP connection 和 allowlist，从 `TOOLBOX_URL` 读取 endpoint。稳定指令位于 `agent/instructions.md`，业务 Skill 位于 `agent/skills/`；API 和 Web 不维护 MCP registry 或代理 tool/resource 请求。
