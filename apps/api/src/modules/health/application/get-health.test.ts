@@ -17,6 +17,38 @@ it("服务配置无效时保留服务端500错误", async () => {
   }
 });
 
+// 注入内部返回值故障，验证响应契约不会泄漏额外字段或把服务端错误归为400。
+it("JSON响应移除额外字段，非法内部结果返回500", async () => {
+  let invalid = false;
+  const app = buildApp({
+    env: loadEnv({ NODE_ENV: "test" }),
+    checkExternal: false,
+    agentJobIntake: {
+      enqueue: async () => ({
+        id: "job-1",
+        queue: invalid ? "" : "agent-jobs",
+        internalToken: "must-not-leak",
+      }),
+    },
+  });
+  try {
+    const request = {
+      method: "POST" as const,
+      url: "/agent/jobs",
+      payload: { prompt: "运行", requestedAt: "2026-10-18T00:00:00.000Z" },
+    };
+    const accepted = await app.inject(request);
+    expect(accepted.statusCode).toBe(202);
+    expect(accepted.json()).toEqual({ id: "job-1", queue: "agent-jobs" });
+    invalid = true;
+    const rejected = await app.inject(request);
+    expect(rejected.statusCode).toBe(500);
+    expect(rejected.body).not.toContain("must-not-leak");
+  } finally {
+    await app.close();
+  }
+});
+
 it("依赖故障聚合为 degraded 并阻止队列就绪", async () => {
   const status = await getHealth(loadEnv({ NODE_ENV: "test" }), {
     database: async () => ({ status: "ok", message: "PostgreSQL reachable" }),

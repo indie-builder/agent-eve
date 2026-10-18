@@ -1,5 +1,10 @@
 import cors from "@fastify/cors";
 import Fastify, { type FastifyInstance } from "fastify";
+import {
+  hasZodFastifySchemaValidationErrors,
+  serializerCompiler,
+  validatorCompiler,
+} from "@fastify/type-provider-zod";
 import { runAgent } from "@agent-template/agent";
 import { createLoggerOptions } from "@agent-template/logger";
 import { agentChatRoutes } from "../modules/agent-chat/http/routes.js";
@@ -29,6 +34,14 @@ export function buildApp(options: BuildAppOptions = {}): FastifyInstance {
   const agentJobIntake =
     options.agentJobIntake ?? createAgentJobIntake(() => createAgentQueue(env.REDIS_URL));
   const app = Fastify({ logger: createLoggerOptions({ service: "api" }) });
+  app.setValidatorCompiler(validatorCompiler);
+  app.setSerializerCompiler(serializerCompiler);
+  app.setErrorHandler((error, _request, reply) => {
+    if (hasZodFastifySchemaValidationErrors(error)) {
+      return reply.code(400).send({ message: "请求参数无效", issues: error.validation });
+    }
+    return reply.send(error);
+  });
 
   void app.register(cors, { origin: env.CORS_ORIGIN });
   void app.register(healthRoutes, {

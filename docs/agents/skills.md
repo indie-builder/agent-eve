@@ -55,6 +55,12 @@ TesterArmy 官方 `e2e@e2e` Plugin 0.21.2 已按 `--scope project` 安装，mark
 
 现有社区Plugin提供 `bullmq-specialist`、`zod-validation-expert`、Docker和TypeScript指导，不重复安装。它们的个别示例可能落后于BullMQ6/Zod4，涉及具体API时以当前安装版本与官方文档为准。Pino未采用低安装量非官方技能，由Fastify官方维护者技能和现有logger规则覆盖。
 
+## Fastify与Zod集成
+
+项目使用官方 `@fastify/type-provider-zod`，复用shared Zod schema完成请求类型推导、运行时校验与JSON响应序列化。相关能力由已安装的 `mcollina/skills` → `fastify-best-practices`（项目级Skills CLI管理）和现有Plugin的 `zod-validation-expert` 覆盖，不重复安装低采用量技能。已核对 `npx skills@latest list --agent claude-code` 的项目安装与发现链接。
+
+Fastify维护者技能中的Type Provider示例主要使用TypeBox；本项目采用Zod，具体调用以[官方Provider](https://github.com/fastify/fastify-type-provider-zod)为准。路由作用域、请求400、内部/响应500与SSE例外规则见 `apps/api/AGENTS.md`。外部技能文件保持原样，项目选择写在项目规则中。
+
 ## 本地 Skill（第二选项）
 
 外部技能统一由 Skills CLI 管理，来源固定在 `skills-lock.json`。真实文件统一放 `.agents/skills/<name>`，以 `.claude/skills` 相对链接发现；CLI add的复制结果和update的链接结果统一收敛为此单副本布局。当前是 **12个CLI管理技能 + 4个本地业务技能**。
