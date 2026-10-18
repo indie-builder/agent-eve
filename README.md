@@ -7,6 +7,7 @@
 - 前端：pnpm + TypeScript 7 + Next.js + React + Tailwind CSS + shadcn/ui + Vitest
 - 后端：TypeScript 7 + Fastify + Prisma + PostgreSQL + Redis + BullMQ + MCP Toolbox + Eve + Zod + Pino + Vitest
 - 工程化：pnpm Workspace + Turborepo + Oxlint + Oxfmt + tsdown / Rolldown
+- 浏览器回归：TesterArmy e2e + Chromium（Web engine 基于 Playwright）
 
 开发环境使用 Node.js 26.12.0（`.nvmrc`）和 `package.json` 声明的 pnpm 版本。使用 nvm 时先运行 `nvm install && nvm use`。依赖跟进最新稳定版，manifest 使用无大版本上限的 `>=x.y.z`；大版本升级直接迁移代码，不保留旧版双轨实现。锁文件固定本次验证版本，部署使用 `pnpm install --frozen-lockfile`。pnpm 的 packageManager、Node 的 .nvmrc 和镜像标签记录可复现版本，后续按最新稳定发布主动更新。
 
@@ -55,6 +56,19 @@ pnpm db:generate
 pnpm db:migrate
 pnpm db:seed
 ```
+
+## 浏览器测试
+
+```bash
+pnpm exec e2e-web install chromium
+pnpm test
+```
+
+`pnpm test` 是统一入口，执行精简底层契约检查和 TesterArmy e2e Web/API 验收。e2e 自动启动独立 Next.js（13020）和生产 Fastify app（14020），成功路径走真实 HTTP/SSE，仅在外部 runtime/queue seam 注入确定性测试 adapter；无需模型密钥、数据库或 Docker。核心验收共6条，报告与失败 trace 写入被忽略的 `.e2e/`。
+
+只跑验收使用 `pnpm test:e2e`。对已启动的真实 Web/API/Eve 环境设置 `E2E_LIVE_WEB_URL` 和 `E2E_LIVE_API_URL` 后运行 `pnpm test:live`，缺少环境会失败；该入口调用真实模型，不纳入默认回归。测试规则见根目录 `AGENTS.md`。
+
+详细运行方式、官方技能与现有测试迁移评估见 [测试与迁移评估](docs/testing.md)。
 
 ## 目录结构
 

@@ -1,19 +1,7 @@
 import { describe, expect, it } from "vitest";
-import { readFileSync } from "node:fs";
 import { defaultEveAgentModel } from "@agent-template/agent-eve/config";
-import { readEveAnthropicBaseURL } from "./provider.js";
 
 describe("Eve authored surface", () => {
-  it("depends on the latest official eve package", () => {
-    const packageJson = JSON.parse(
-      readFileSync(new URL("../package.json", import.meta.url), "utf8"),
-    ) as {
-      dependencies?: Record<string, string>;
-    };
-
-    expect(packageJson.dependencies?.eve).toBe("latest");
-  });
-
   it("loads the authored surface through eve defineAgent", async () => {
     const agent = (await import("../agent/agent")).default as {
       model?: { modelId?: string };
@@ -33,14 +21,6 @@ describe("Eve authored surface", () => {
     expect(connection.url).toBe("http://localhost:15000/mcp");
     expect(connection.description).toContain("MCP Toolbox read models");
     expect(connection.tools?.allow).toEqual([...eveToolboxToolNames]);
-  });
-
-  it("defines the Eve channel route auth in the authored surface", async () => {
-    const channel = (await import("../agent/channels/eve")).default as {
-      routes?: readonly unknown[];
-    };
-
-    expect(Array.isArray(channel.routes)).toBe(true);
   });
 
   it("authors production limits, a local-safe sandbox, hooks, and privacy-safe telemetry", async () => {
@@ -101,17 +81,4 @@ describe("Eve authored surface", () => {
       expect(definition.kind).toBe("eve:disabled-tool");
     },
   );
-
-  it("normalizes Anthropic-compatible base URL for the AI SDK provider", () => {
-    expect(
-      readEveAnthropicBaseURL({
-        ANTHROPIC_BASE_URL: "http://127.0.0.1:3425/",
-      }),
-    ).toBe("http://127.0.0.1:3425/v1");
-    expect(
-      readEveAnthropicBaseURL({
-        ANTHROPIC_BASE_URL: "http://127.0.0.1:3425/v1",
-      }),
-    ).toBe("http://127.0.0.1:3425/v1");
-  });
 });

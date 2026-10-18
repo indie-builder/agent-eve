@@ -3,7 +3,11 @@ import cors from "@fastify/cors";
 import Fastify, { type FastifyInstance } from "fastify";
 import { runAgent, type AgentRunResult, type RunAgentOptions } from "@agent-template/agent";
 import { createLoggerOptions } from "@agent-template/logger";
-import { AgentRunInputSchema, type AgentRunEvent } from "@agent-template/shared";
+import {
+  AgentJobPayloadSchema,
+  AgentRunInputSchema,
+  type AgentRunEvent,
+} from "@agent-template/shared";
 import { loadEnv, type Env } from "./env.js";
 import { getHealth } from "./health.js";
 import { createAgentJobIntake, type AgentJobIntake } from "./agent-job-intake.js";
@@ -32,12 +36,20 @@ export function buildApp(options: BuildAppOptions = {}): FastifyInstance {
   app.get("/health", async () => getHealth(env, { checkExternal }));
 
   app.post("/agent/jobs", async (request, reply) => {
-    const result = await agentJobIntake.enqueue(request.body);
+    const parsed = AgentJobPayloadSchema.safeParse(request.body);
+    if (!parsed.success) {
+      return reply.code(400).send({ message: "请求参数无效", issues: parsed.error.issues });
+    }
+    const result = await agentJobIntake.enqueue(parsed.data);
     return reply.code(202).send(result);
   });
 
   app.post("/agent/chat", async (request, reply) => {
-    const input = AgentRunInputSchema.parse(request.body);
+    const parsed = AgentRunInputSchema.safeParse(request.body);
+    if (!parsed.success) {
+      return reply.code(400).send({ message: "请求参数无效", issues: parsed.error.issues });
+    }
+    const input = parsed.data;
     const stream = new PassThrough();
 
     void (async () => {

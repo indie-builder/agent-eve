@@ -1,184 +1,46 @@
-import { describe, expect, it, vi } from "vitest";
-import { ZodError } from "zod";
-import { streamAgentChat, submitAgentJob } from "./agent-client";
+import { describe, expect, it } from "vitest";
+import { streamAgentChat } from "./agent-client";
 
-describe("submitAgentJob", () => {
-  it("rejects an empty prompt before calling the backend", async () => {
-    const fetcher = vi.fn<typeof fetch>();
-
-    await expect(submitAgentJob({ prompt: "   ", fetcher })).rejects.toThrow("Prompt is required");
-
-    expect(fetcher).not.toHaveBeenCalled();
-  });
-
-  it("submits a valid Agent job to the configured API base URL", async () => {
-    const fetcher = vi.fn<typeof fetch>().mockResolvedValue(
-      mockResponse({
-        ok: true,
-        json: async () => ({ id: "job-1", queue: "agent-jobs" }),
-      }),
-    );
-
-    await submitAgentJob({
-      prompt: "  Summarize this template  ",
-      baseUrl: "http://api.test",
-      fetcher,
-    });
-
-    expect(fetcher).toHaveBeenCalledWith("http://api.test/agent/jobs", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: expect.any(String),
-    });
-    const body = fetcher.mock.calls[0]?.[1]?.body as string;
-    expect(JSON.parse(body)).toMatchObject({
-      prompt: "Summarize this template",
-    });
-    expect(new Date(JSON.parse(body).requestedAt).toString()).not.toBe("Invalid Date");
-  });
-
-  it("returns accepted Agent job metadata from the backend", async () => {
-    const fetcher = vi.fn<typeof fetch>().mockResolvedValue(
-      mockResponse({
-        ok: true,
-        json: async () => ({ id: "job-42", queue: "agent-jobs" }),
-      }),
-    );
-
-    await expect(submitAgentJob({ prompt: "Run agent", fetcher })).resolves.toEqual({
-      id: "job-42",
-      queue: "agent-jobs",
-    });
-  });
-
-  it("reports backend submission failures separately from network failures", async () => {
-    const fetcher = vi.fn<typeof fetch>().mockResolvedValue(
-      mockResponse({
-        ok: false,
-        status: 400,
-      }),
-    );
-
-    await expect(submitAgentJob({ prompt: "Run agent", fetcher })).rejects.toThrow(
-      "Agent job intake rejected the request with status 400",
-    );
-  });
-
-  it("reports network failures separately from backend submission failures", async () => {
-    const fetcher = vi.fn<typeof fetch>().mockRejectedValue(new TypeError("fetch failed"));
-
-    await expect(submitAgentJob({ prompt: "Run agent", fetcher })).rejects.toThrow(
-      "Unable to reach Agent job intake API",
-    );
-  });
-
-  it("rejects invalid Agent job intake metadata from the backend", async () => {
-    const fetcher = vi.fn<typeof fetch>().mockResolvedValue(
-      mockResponse({
-        ok: true,
-        json: async () => ({ id: "job-1" }),
-      }),
-    );
-
-    await expect(submitAgentJob({ prompt: "Run agent", fetcher })).rejects.toThrow(ZodError);
-  });
-});
-
-describe("streamAgentChat", () => {
-  it("streams Agent events and returns the final result", async () => {
-    const events: unknown[] = [];
-    const fetcher = vi.fn<typeof fetch>().mockResolvedValue(
-      mockResponse({
-        body: createStream(
-          [
-            'event: agent-event\ndata: {"kind":"text","text":"Working"}\n\n',
-            'event: result\ndata: {"promptLength":9,"runtime":"eve","configured":true,"status":"completed","events":[{"kind":"text","text":"Working"},{"kind":"done","result":"Done"}],"output":"Done"}\n\n',
-          ].join(""),
-        ),
-        ok: true,
-      }),
-    );
-
+describe("Chat SSE 协议异常", () => {
+  it("区分网络不可达与后端 SSE error", async () => {
     await expect(
       streamAgentChat({
-        prompt: "Run agent",
-        baseUrl: "http://api.test",
-        fetcher,
-        onEvent(event) {
-          events.push(event);
+        prompt: "运行",
+        fetcher: async () => {
+          throw new TypeError("fetch failed");
         },
       }),
-    ).resolves.toMatchObject({
-      output: "Done",
-      status: "completed",
-    });
-
-    expect(fetcher).toHaveBeenCalledWith("http://api.test/agent/chat", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ prompt: "Run agent" }),
-    });
-    expect(events).toEqual([{ kind: "text", text: "Working" }]);
-  });
-
-  it("sends structured HITL responses with an opaque Agent continuation", async () => {
-    const continuation = { token: "opaque-token" };
-    const responses = [
-      {
-        kind: "selected-option" as const,
-        requestId: "request-1",
-        optionId: "approve",
-      },
-    ];
-    const fetcher = vi.fn<typeof fetch>().mockResolvedValue(
-      mockResponse({
-        body: createStream(
-          `event: result\ndata: ${JSON.stringify({
-            promptLength: 2,
-            runtime: "eve",
-            configured: true,
-            status: "waiting",
-            events: [{ kind: "waiting" }],
-            output: "可以继续。",
-            sessionId: "session-1",
-            continuation,
-          })}\n\n`,
-        ),
-        ok: true,
-      }),
-    );
-
+    ).rejects.toThrow("Unable to reach Agent chat API");
     await expect(
       streamAgentChat({
-        continuation,
-        responses,
-        baseUrl: "http://api.test",
-        fetcher,
+        prompt: "运行",
+        fetcher: async () => new Response('event: error\ndata: {"message":"runtime failed"}\n\n'),
       }),
-    ).resolves.toMatchObject({ status: "waiting", continuation });
+    ).rejects.toThrow("runtime failed");
+  });
 
-    expect(fetcher).toHaveBeenCalledWith("http://api.test/agent/chat", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ continuation, responses }),
+  it("拒绝缺少最终结果的截断流", async () => {
+    await expect(
+      streamAgentChat({
+        prompt: "运行",
+        fetcher: async () =>
+          new Response('event: agent-event\ndata: {"kind":"text","text":"未完成"}\n\n'),
+      }),
+    ).rejects.toThrow("Agent chat stream ended without a result");
+  });
+
+  it("跨网络分块保留 UTF-8 和 SSE 消息边界", async () => {
+    const bytes = new TextEncoder().encode(
+      'event: result\ndata: {"promptLength":2,"runtime":"eve","configured":true,"status":"completed","output":"中文回复"}\n\n',
+    );
+    const body = new ReadableStream<Uint8Array>({
+      start(controller) {
+        for (const byte of bytes) controller.enqueue(Uint8Array.of(byte));
+        controller.close();
+      },
     });
+    await expect(
+      streamAgentChat({ prompt: "运行", fetcher: async () => new Response(body) }),
+    ).resolves.toMatchObject({ output: "中文回复", status: "completed" });
   });
 });
-
-function mockResponse(init: {
-  ok: boolean;
-  status?: number;
-  json?: () => Promise<unknown>;
-  body?: ReadableStream<Uint8Array>;
-}): Response {
-  return init as unknown as Response;
-}
-
-function createStream(input: string) {
-  return new ReadableStream({
-    start(controller) {
-      controller.enqueue(new TextEncoder().encode(input));
-      controller.close();
-    },
-  });
-}

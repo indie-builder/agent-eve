@@ -1,5 +1,6 @@
 import { EventEmitter } from "node:events";
 import { describe, expect, it } from "vitest";
+import { ZodError } from "zod";
 import type { AgentRunResult } from "@agent-template/agent";
 import type { AgentJobPayload } from "@agent-template/shared";
 import { loadWorkerEnv } from "./env.js";
@@ -64,6 +65,13 @@ function createHarness(result: AgentRunResult) {
 }
 
 describe("createAgentWorkerProcess", () => {
+  it("defaults worker concurrency to 1 and requires a positive integer", () => {
+    expect(loadWorkerEnv({})).toMatchObject({ WORKER_CONCURRENCY: 1 });
+    expect(loadWorkerEnv({ WORKER_CONCURRENCY: "4" })).toMatchObject({ WORKER_CONCURRENCY: 4 });
+    expect(() => loadWorkerEnv({ WORKER_CONCURRENCY: "0" })).toThrow(ZodError);
+    expect(() => loadWorkerEnv({ WORKER_CONCURRENCY: "1.5" })).toThrow(ZodError);
+  });
+
   it("assembles worker processing, events, concurrency, and shutdown behind one interface", async () => {
     const { workerProcess, logs, state } = createHarness(completedResult);
 

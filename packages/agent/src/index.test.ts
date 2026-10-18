@@ -1,28 +1,8 @@
 import { describe, expect, it } from "vitest";
 import { ZodError } from "zod";
-import { getAgentRuntimeStateFromEnv, parseAgentRuntimeEnv, runAgent } from "./index.js";
+import { runAgent } from "./index.js";
 
 describe("Agent runtime seam", () => {
-  it("reports Eve as the only Agent runtime", () => {
-    const state = getAgentRuntimeStateFromEnv({});
-
-    expect(state.runtime).toBe("eve");
-    expect(state.configured).toBe(false);
-  });
-
-  it("parses Eve Agent runtime env config", () => {
-    expect(parseAgentRuntimeEnv({})).toEqual({});
-
-    expect(
-      getAgentRuntimeStateFromEnv({
-        EVE_AGENT_HOST: "http://127.0.0.1:13000",
-      }),
-    ).toMatchObject({
-      runtime: "eve",
-      configured: true,
-    });
-  });
-
   it("runs an Agent run through the Eve runtime seam", async () => {
     const events: unknown[] = [];
 

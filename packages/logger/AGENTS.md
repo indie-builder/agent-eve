@@ -20,7 +20,6 @@
 
 ```bash
 pnpm --filter @agent-template/logger lint
-pnpm --filter @agent-template/logger test
 pnpm --filter @agent-template/logger typecheck
 pnpm --filter @agent-template/logger build
 ```

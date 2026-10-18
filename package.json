@@ -8,9 +8,14 @@
   "scripts": {
     "dev": "turbo dev",
     "build": "turbo build",
-    "lint": "turbo lint",
-    "typecheck": "turbo typecheck",
-    "test": "turbo test",
+    "lint": "turbo lint && pnpm lint:e2e",
+    "lint:e2e": "oxlint --deny-warnings e2e.config.ts e2e.live.config.ts tests",
+    "typecheck": "turbo typecheck && pnpm typecheck:e2e",
+    "typecheck:e2e": "tsc -p tests/tsconfig.json --noEmit",
+    "test": "pnpm test:contracts && pnpm test:e2e",
+    "test:contracts": "turbo test",
+    "test:e2e": "e2e run",
+    "test:live": "e2e run --config e2e.live.config.ts",
     "db:generate": "pnpm --filter @agent-template/db db:generate",
     "db:migrate": "pnpm --filter @agent-template/db db:migrate",
     "db:seed": "pnpm --filter @agent-template/db db:seed",
@@ -18,7 +23,9 @@
     "format:check": "oxfmt --check ."
   },
   "devDependencies": {
+    "@e2e-dev/web": ">=0.15.2",
     "@types/node": ">=26.6.5",
+    "e2e": ">=0.21.2",
     "oxfmt": ">=0.73.0",
     "oxlint": ">=1.88.0",
     "tsdown": ">=0.23.1",

@@ -12,23 +12,32 @@ Plugin 声明位于 `.claude/settings.json`，使用 `--scope project` 安装。
 | `nextjs@nextjs`                                 | 0.1.0        | Next开发诊断、Cache Components采用/优化及上游相关专项技能                               | project  |
 | `postgres-best-practices@supabase-agent-skills` | c9be0e931b79 | PostgreSQL性能、schema、索引与数据库最佳实践                                            | project  |
 | `impeccable@impeccable`                         | 4.6.0        | 界面设计、审查、组件与体验优化，包含原生agents/hooks                                    | project  |
-| `superpowers-zh@superpowers-zh`                 | 1.7.14       | 中文工程流程，含 `chinese-commit-conventions`                                           | project  |
 | `agentic-awesome-skills@agentic-awesome-skills` | 19.9.0       | 含 `agents-md`、`api-design-principles`、`sql-optimization-patterns` 的社区技能集       | project  |
 | `redis-development@claude-plugins-official`     | 1.4.0        | Redis开发、连接和性能最佳实践                                                           | project  |
 
-社区技能集和中文superpowers是完整套件，不支持只安装其中一个 Skill。社区 Plugin 包含2649个技能，superpowers-zh 包含21个技能，会附带所需三项/一项之外的能力；本项目按用户要求优先采用 Plugin，而不是复制其中的文件。Impeccable 与 superpowers-zh 的 SessionStart 等 hooks 由 Plugin 自己管理，项目不手抄 hooks。
+社区 Plugin 包含2649个技能，是完整套件，不支持只安装其中一个 Skill；本项目优先采用 Plugin，而不是复制其中的文件。Impeccable 的 SessionStart 等 hooks 由 Plugin 自己管理，项目不手抄 hooks。
+
+本项目不使用 Superpowers。已卸载 `superpowers-zh` Plugin、移除专属 marketplace 和缓存，并删除强制调用规则。社区套件收录的13个 Superpowers 工作流副本通过 `.claude/settings.json` 的 `skillOverrides: off` 关闭，用户级设置同步关闭；不手改其他 Plugin 的缓存，避免更新后恢复。社区套件原始文件仍随该 Plugin 分发，但不会作为可调用技能加载。
+
+## e2e 测试技能
+
+TesterArmy 官方 `e2e@e2e` Plugin 0.21.2 已按 `--scope project` 安装，marketplace 来源为 `tester-army/e2e`，包含 `e2e:e2e`、`e2e:migrate-to-e2e` 和 `e2e:create-verification-skill`。分别负责测试编写/运行/排错、现有 UI 自动化套件迁移、创建项目验证技能。
+
+已用 `npx skills@latest find tester-army` 核对技能来源，并优先选择官方 Plugin；不再向 `.agents/skills` 安装重复副本，所以 `skills-lock.json` 无新增条目。npm 包附带的技能无需额外通过 pnpm approve 安装。重新启动 Claude Code 后加载新技能；当前版本的使用文档也可通过 `pnpm exec e2e guide setup`、`pnpm exec e2e guide writing-tests` 阅读。
+
+安装声明在 `.claude/settings.json`，版本和组件清单在 `.agents/skill-sources.json`。本次不额外注册 MCP server；CLI 已可运行测试。业务 Agent 继续使用 Eve，e2e 仅用于研发测试。e2e 是唯一端到端验收标准，默认 `pnpm test` 统一执行精简契约检查与Web/API验收；详细规则、保留例外及运行命令见 [统一测试标准](../testing.md)。
 
 ## 按项目用途分类
 
-| 项目维度         | 优先使用                                                                                         | 本地后备/自定义                         |
-| ---------------- | ------------------------------------------------------------------------------------------------ | --------------------------------------- |
-| 前端组件与体验   | `impeccable:impeccable`                                                                          | `shadcn`、`vercel-react-best-practices` |
-| Next开发与缓存   | `nextjs` Plugin 的专项技能                                                                       | 无重复本地副本                          |
-| API与数据库      | 社区Plugin的API/SQL技能、PostgreSQL best practices Plugin                                        | `prisma-orm-setup`                      |
-| Eve Agent        | 无对应官方Claude Plugin                                                                          | `eve`，以已安装eve包内docs为事实源      |
-| 需求、实施与质量 | Matt Pocock的27个稳定技能、superpowers-zh                                                        | 无重复本地副本                          |
-| 工程文档与提交   | 社区Plugin的`agents-md`、Matt的`writing-for-agents`、`superpowers-zh:chinese-commit-conventions` | `find-skills`                           |
-| 项目业务         | 无远端Plugin                                                                                     | 4个`ecommerce-*`业务Skill               |
+| 项目维度         | 优先使用                                                                   | 本地后备/自定义                         |
+| ---------------- | -------------------------------------------------------------------------- | --------------------------------------- |
+| 前端组件与体验   | `impeccable:impeccable`                                                    | `shadcn`、`vercel-react-best-practices` |
+| Next开发与缓存   | `nextjs` Plugin 的专项技能                                                 | 无重复本地副本                          |
+| API与数据库      | 社区Plugin的API/SQL技能、PostgreSQL best practices Plugin                  | `prisma-orm-setup`                      |
+| Eve Agent        | 无对应官方Claude Plugin                                                    | `eve`，以已安装eve包内docs为事实源      |
+| 需求、实施与质量 | Matt Pocock的27个稳定技能                                                  | 无重复本地副本                          |
+| 工程文档与提交   | 社区Plugin的`agents-md`、Matt的`writing-for-agents`；提交格式遵循AGENTS.md | `find-skills`                           |
+| 项目业务         | 无远端Plugin                                                               | 4个`ecommerce-*`业务Skill               |
 
 ## 按技术栈补齐的最佳实践
 

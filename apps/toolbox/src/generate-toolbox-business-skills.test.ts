@@ -1,4 +1,4 @@
-import { existsSync, readFileSync } from "node:fs";
+import { readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
@@ -6,40 +6,34 @@ import { describe, expect, it } from "vitest";
 const repositoryRoot = fileURLToPath(new URL("../../..", import.meta.url));
 const eveSkillsRoot = join(repositoryRoot, "apps/runtime/agent/skills");
 
-const skills = [
-  {
-    name: "ecommerce-sales-analysis",
-    tools: ["summarize-ecommerce-sales-by-day", "summarize-ecommerce-sales-by-channel"],
-  },
-  {
-    name: "ecommerce-product-analysis",
-    tools: ["list-ecommerce-top-products"],
-  },
-  {
-    name: "ecommerce-order-operations",
-    tools: ["list-ecommerce-orders-in-window", "get-ecommerce-order-detail"],
-  },
-  {
-    name: "ecommerce-fulfillment-operations",
-    tools: ["list-ecommerce-fulfillment-exceptions", "get-ecommerce-order-detail"],
-  },
-];
-
 describe("Toolbox business skill authoring", () => {
-  it.each(skills)("installs $name for Eve", ({ name, tools }) => {
-    const eveSkill = readSkill(eveSkillsRoot, name);
+  it("keeps tools.yaml, the generated skills, and the runtime allowlist on the same tool names", () => {
+    const declaredTools = toolNamesFrom(readYaml("apps/toolbox/tools.yaml"));
+    const allowlist = toolNamesFrom(readYaml("apps/runtime/agent/connections/toolbox.ts"));
+    const referencedTools = readdirSync(eveSkillsRoot).flatMap((skill) => {
+      const markdown = readFileSync(join(eveSkillsRoot, skill, "SKILL.md"), "utf8");
+      return [...markdown.matchAll(/toolbox__([A-Za-z0-9_-]+)/g)].map((match) => match[1] ?? "");
+    });
 
-    expect(eveSkill).toContain(`name: ${name}`);
-    expect(eveSkill).toContain("Agent runtime 自己维护的 MCP connection");
-
-    for (const tool of tools) {
-      expect(eveSkill).toContain(`toolbox__${tool}`);
-    }
-
-    expect(existsSync(join(eveSkillsRoot, name, "scripts"))).toBe(false);
+    expect(declaredTools.sort()).toEqual(allowlist.sort());
+    expect(referencedTools.length).toBeGreaterThan(0);
+    expect(referencedTools.filter((tool) => !allowlist.includes(tool))).toEqual([]);
   });
 });
 
-function readSkill(root: string, name: string) {
-  return readFileSync(join(root, name, "SKILL.md"), "utf8");
+function readYaml(path: string) {
+  return readFileSync(join(repositoryRoot, path), "utf8");
+}
+
+// Only reads the flat `kind: tool` blocks and the runtime's const allowlist; groups are not tools.
+function toolNamesFrom(source: string) {
+  if (source.includes("eveToolboxToolNames")) {
+    const allowlist = source.slice(
+      source.indexOf("eveToolboxToolNames = ["),
+      source.indexOf("] as const"),
+    );
+    return [...allowlist.matchAll(/"([^"]+)"/g)].map((match) => match[1]);
+  }
+
+  return [...source.matchAll(/^kind: tool\nname: (.+)$/gm)].map((match) => (match[1] ?? "").trim());
 }
