@@ -1,0 +1,189 @@
+{
+  "schemaVersion": 1,
+  "checkedAt": "2026-10-18",
+  "policy": {
+    "scope": "Claude Code project plugins first; local project skills only when no matching plugin exists or project-authored.",
+    "sync": "Update plugins through Claude Code; replace fallback skill source directories completely, removing missing upstream files and retired names.",
+    "mattpocockSuite": "Track plugin.json stable skills; exclude in-progress and misc.",
+    "localModifications": "Project conventions stay in AGENTS.md/CLAUDE.md, never mutate plugin caches."
+  },
+  "skills": {
+    "ecommerce-fulfillment-operations": {
+      "source": "local",
+      "path": ".agents/skills/ecommerce-fulfillment-operations",
+      "reason": "Project-authored Toolbox business workflow; no remote mirror.",
+      "installedSha256": "10a8d0dbefd4d24b7d925caaa18a916fd5528f0c10056ac354bbafbe1aa58f8f",
+      "files": 1,
+      "syncStatus": "local",
+      "delivery": "project-local"
+    },
+    "ecommerce-order-operations": {
+      "source": "local",
+      "path": ".agents/skills/ecommerce-order-operations",
+      "reason": "Project-authored Toolbox business workflow; no remote mirror.",
+      "installedSha256": "9281577cfdbdd50f26235f5b6d049583cd60069dcfd8d4ccef34a2ef6efc9412",
+      "files": 1,
+      "syncStatus": "local",
+      "delivery": "project-local"
+    },
+    "ecommerce-product-analysis": {
+      "source": "local",
+      "path": ".agents/skills/ecommerce-product-analysis",
+      "reason": "Project-authored Toolbox business workflow; no remote mirror.",
+      "installedSha256": "56da2165d0b70cfd324620381bdd1f577bdfcbd063c196121f0dfc9833350eab",
+      "files": 1,
+      "syncStatus": "local",
+      "delivery": "project-local"
+    },
+    "ecommerce-sales-analysis": {
+      "source": "local",
+      "path": ".agents/skills/ecommerce-sales-analysis",
+      "reason": "Project-authored Toolbox business workflow; no remote mirror.",
+      "installedSha256": "86e1326d5a8564cf39202c1dbb3b120250d1fa664fbb62740a1bbb62c3199b68",
+      "files": 1,
+      "syncStatus": "local",
+      "delivery": "project-local"
+    },
+    "eve": {
+      "source": "vercel/eve",
+      "ref": "main",
+      "path": "skills/eve",
+      "commit": "f4e8ef14ff1f799286ea983dc5fd6e96208497c5",
+      "installedSha256": "c0ab63d36ef2c198e21137dedcb107285a7391aa2a5e9a24dc9da493c8cc8741",
+      "files": 1,
+      "syncStatus": "unchanged",
+      "delivery": "project-skill-fallback"
+    },
+    "find-skills": {
+      "source": "vercel-labs/skills",
+      "ref": "main",
+      "path": "skills/find-skills",
+      "commit": "13e4063a1cf913f5606d57d42ab83a86f5001e04",
+      "installedSha256": "ecc7999c2cac8a2e5203050265a892942f8dc72c7ec1779a1cc4cc8a6d2b5ddb",
+      "files": 1,
+      "syncStatus": "updated",
+      "delivery": "project-skill-fallback"
+    },
+    "prisma-orm-setup": {
+      "source": "prisma/skills",
+      "ref": "main",
+      "path": "prisma-orm-setup",
+      "commit": "ba3f9d73200bbb62e49733ab93a961fd138a2c18",
+      "installedSha256": "a766bfe3293887ceda02c72de826c0094b372aaf59dd989aceb7714bd9b363fe",
+      "files": 9,
+      "syncStatus": "added",
+      "delivery": "project-skill-fallback"
+    },
+    "react-best-practices": {
+      "source": "vercel-labs/agent-skills",
+      "ref": "main",
+      "path": "skills/react-best-practices",
+      "commit": "063bee94c3f4df8453406c830b0a7df0f2860278",
+      "installedSha256": "121c0a1585e8af1db810deb3569b2b062c37d7413687cfca759e411ca752d117",
+      "files": 76,
+      "syncStatus": "unchanged",
+      "delivery": "project-skill-fallback"
+    },
+    "shadcn": {
+      "source": "shadcn-ui/ui",
+      "ref": "main",
+      "path": "skills/shadcn",
+      "commit": "d2fba50ee5b9113008b5bb908563527b7efd2f27",
+      "installedSha256": "eedfc7b3e290032a98e9dc74716c686f8d7c325b28b693be32cd16bdc0486842",
+      "files": 21,
+      "syncStatus": "updated",
+      "delivery": "project-skill-fallback"
+    }
+  },
+  "integrations": {
+    ".claude/settings.json": {
+      "policy": "Project-scoped plugins and marketplaces; plugin-owned hooks; no copied Codex hook compatibility."
+    }
+  },
+  "retired": {
+    "to-prd": "to-spec",
+    "to-issues": "to-tickets",
+    "writing-great-skills": "writing-for-agents",
+    "prisma-database-setup": "prisma-orm-setup"
+  },
+  "plugins": {
+    "mattpocock-skills@claude-plugins-official": {
+      "scope": "project",
+      "source": "mattpocock/skills",
+      "version": "1.3.1",
+      "skills": [
+        "ask-matt",
+        "code-review",
+        "codebase-design",
+        "diagnosing-bugs",
+        "domain-modeling",
+        "grill-me",
+        "grill-with-docs",
+        "grilling",
+        "handoff",
+        "implement",
+        "implement-spec",
+        "improve-codebase-architecture",
+        "pr",
+        "prototype",
+        "research",
+        "retro",
+        "setup-matt-pocock-skills",
+        "tdd",
+        "teach",
+        "to-questionnaire",
+        "to-spec",
+        "to-tickets",
+        "triage",
+        "wait-what",
+        "wayfinder",
+        "wizard",
+        "writing-for-agents"
+      ]
+    },
+    "nextjs@nextjs": {
+      "scope": "project",
+      "source": "vercel/next.js",
+      "version": "0.1.0",
+      "skills": [
+        "next-cache-components-adoption",
+        "next-cache-components-optimizer",
+        "next-dev-loop"
+      ]
+    },
+    "postgres-best-practices@supabase-agent-skills": {
+      "scope": "project",
+      "source": "supabase/agent-skills",
+      "version": "c9be0e931b79",
+      "skills": [
+        "supabase-postgres-best-practices"
+      ]
+    },
+    "impeccable@impeccable": {
+      "scope": "project",
+      "source": "pbakaus/impeccable",
+      "version": "4.6.0",
+      "skills": [
+        "impeccable"
+      ]
+    },
+    "superpowers-zh@superpowers-zh": {
+      "scope": "project",
+      "source": "jnMetaCode/superpowers-zh",
+      "version": "1.7.14",
+      "skills": [
+        "chinese-commit-conventions"
+      ]
+    },
+    "agentic-awesome-skills@agentic-awesome-skills": {
+      "scope": "project",
+      "source": "sickn33/agentic-awesome-skills",
+      "version": "19.9.0",
+      "skills": [
+        "agents-md",
+        "api-design-principles",
+        "sql-optimization-patterns"
+      ]
+    }
+  }
+}

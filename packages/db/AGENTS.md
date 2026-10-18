@@ -22,9 +22,9 @@
 
 ## 相关技能
 
-- Prisma 连接、provider、driver adapter 配置：使用 `prisma-database-setup`。
-- PostgreSQL schema、索引、RLS、连接池最佳实践：使用 `supabase-postgres-best-practices`。
-- 慢查询、执行计划和索引优化：使用 `sql-optimization-patterns`。
+- Prisma 连接、provider、driver adapter 配置：使用 `prisma-orm-setup`。
+- PostgreSQL schema、索引、RLS、连接池最佳实践：使用 `postgres-best-practices:supabase-postgres-best-practices`。
+- 慢查询、执行计划和索引优化：使用 `agentic-awesome-skills:sql-optimization-patterns`。
 
 ## 验证
 

@@ -20,9 +20,9 @@
 ## UI 规则
 
 - 用户可见文案默认中文。
-- shadcn/ui 相关改动优先参考 `.codex/skills/shadcn`。
-- React/Next.js 性能相关改动优先参考 `.codex/skills/react-best-practices`。
-- 复杂视觉和体验优化优先参考 `.codex/skills/impeccable`。
+- shadcn/ui 相关改动优先参考 `.claude/skills/shadcn`。
+- React/Next.js 性能相关改动优先参考 `.claude/skills/react-best-practices`。
+- 复杂视觉和体验优化优先参考 `impeccable:impeccable`。
 - 前端 Agent 体验可参考 `https://github.com/shadcn-labs/agentcn` 的 Agent preview、运行事件和 artifact tabs；不要从这里导入 Eve/Flue recipe 或后端 runtime 逻辑。
 - Web 只展示 API Chat SSE 返回的 Agent run event 和最终文本，不代理 MCP tool 或 resource 请求。
 - Web 只持有 opaque Agent continuation；不要解析或构造具体 runtime 的 session state。HITL confirmation/select 通过 shared input response 提交。

@@ -8,6 +8,8 @@ dist
 coverage
 .env
 .env.local
+.claude/settings.local.json
+.claude/*.local.md
 .DS_Store
 .idea/
 *.log

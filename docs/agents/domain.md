@@ -4,7 +4,7 @@
 
 ## 探索前读取
 
-- 根目录 `CONTEXT.md`
+- 根目录 `GLOSSARY.md`
 - `docs/adr/` 下与当前工作相关的 ADR
 
 如果文件不存在，静默继续，不要因为缺文件而中断。`domain-modeling`、`grill-with-docs`、`improve-codebase-architecture` 会在术语或决策真正明确时懒创建这些文件。
@@ -13,14 +13,14 @@
 
 ```text
 /
-├── CONTEXT.md
+├── GLOSSARY.md
 ├── docs/adr/
 └── apps/
 ```
 
 ## 使用 glossary 词汇
 
-输出 issue 标题、重构建议、诊断假设、测试名称时，优先使用 `CONTEXT.md` 里定义的项目术语。
+输出 issue 标题、重构建议、诊断假设、测试名称时，优先使用 `GLOSSARY.md` 里定义的项目术语。
 
 ## 标记 ADR 冲突
 
