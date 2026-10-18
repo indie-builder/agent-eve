@@ -8,7 +8,7 @@ export function createLoggerOptions(options: AppLoggerOptions): LoggerOptions {
   return {
     name: options.service,
     level: process.env.LOG_LEVEL ?? "info",
-    ...options
+    ...options,
   };
 }
 

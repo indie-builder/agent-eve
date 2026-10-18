@@ -1,33 +1,29 @@
 import { z } from "zod";
-import type { SessionState } from "eve/client";
+import type { ClientSessionState } from "eve/client";
 import type { AgentContinuation } from "@agent-template/shared";
 
 const continuationPrefix = "eve:v1:";
-const EveSessionStateSchema = z.object({
-  continuationToken: z.string().min(1),
+const EveClientSessionStateSchema = z.object({
   sessionId: z.string().min(1),
   streamIndex: z.number().int().nonnegative(),
 });
 
-export function encodeEveContinuation(
-  state: SessionState,
-): AgentContinuation | undefined {
-  const parsed = EveSessionStateSchema.safeParse(state);
+export function encodeEveContinuation(state: ClientSessionState): AgentContinuation | undefined {
+  const parsed = EveClientSessionStateSchema.safeParse(state);
   if (!parsed.success) {
     return undefined;
   }
 
   return {
-    token: `${continuationPrefix}${Buffer.from(
-      JSON.stringify(parsed.data),
-      "utf8",
-    ).toString("base64url")}`,
+    token: `${continuationPrefix}${Buffer.from(JSON.stringify(parsed.data), "utf8").toString(
+      "base64url",
+    )}`,
   };
 }
 
 export function decodeEveContinuation(
   continuation: AgentContinuation | undefined,
-): SessionState | undefined {
+): ClientSessionState | undefined {
   if (!continuation) {
     return undefined;
   }
@@ -38,7 +34,7 @@ export function decodeEveContinuation(
 
   try {
     const payload = continuation.token.slice(continuationPrefix.length);
-    return EveSessionStateSchema.parse(
+    return EveClientSessionStateSchema.parse(
       JSON.parse(Buffer.from(payload, "base64url").toString("utf8")),
     );
   } catch {

@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { Button } from "@agent-template/ui";
 import { fetchHealth } from "@/lib/health";
 import { stackItems } from "@/lib/stack";
@@ -12,14 +13,16 @@ export default async function Home() {
           <p className="text-sm font-medium text-slate-500">Agent Platform Template</p>
           <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
             <div>
-              <h1 className="text-4xl font-semibold tracking-normal text-slate-950">项目模板已就绪</h1>
+              <h1 className="text-4xl font-semibold tracking-normal text-slate-950">
+                项目模板已就绪
+              </h1>
               <p className="mt-3 max-w-2xl text-base leading-7 text-slate-600">
-                Next.js、Fastify、BullMQ、Prisma、Redis、Claude Agent runtime 和 Eve Agent runtime 已按 monorepo 结构拆分。
+                Next.js、Fastify、BullMQ、Prisma、Redis、Eve Agent runtime 已按 monorepo 结构拆分。
               </p>
             </div>
             <div className="flex flex-wrap gap-2">
               <Button asChild>
-                <a href="/agent">打开 Agent 控制台</a>
+                <Link href="/agent">打开 Agent 控制台</Link>
               </Button>
               <Button asChild>
                 <a href="http://localhost:14000/health">查看 API Health</a>
@@ -50,7 +53,10 @@ export default async function Home() {
           <h2 className="text-lg font-semibold text-slate-950">技术栈</h2>
           <div className="flex flex-wrap gap-2">
             {stackItems.map((item) => (
-              <span key={item} className="rounded-md border border-slate-200 bg-white px-3 py-1 text-sm text-slate-700">
+              <span
+                key={item}
+                className="rounded-md border border-slate-200 bg-white px-3 py-1 text-sm text-slate-700"
+              >
                 {item}
               </span>
             ))}

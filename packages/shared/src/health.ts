@@ -16,9 +16,8 @@ export const HealthStatusSchema = z.object({
     status: z.enum(["ready", "unavailable"]),
   }),
   agent: z.object({
-    runtime: z.enum(["claude", "eve"]),
+    runtime: z.literal("eve"),
     configured: z.boolean(),
-    model: z.string(),
   }),
 });
 

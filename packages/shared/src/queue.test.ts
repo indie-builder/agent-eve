@@ -9,13 +9,13 @@ describe("createBullMqConnectionOptions", () => {
       username: "user",
       password: "pass",
       db: 2,
-      maxRetriesPerRequest: null
+      maxRetriesPerRequest: null,
     });
   });
 
   it("rejects non-numeric Redis database indexes", () => {
     expect(() => createBullMqConnectionOptions("redis://localhost/not-a-number")).toThrow(
-      "Redis URL database index must be a non-negative integer"
+      "Redis URL database index must be a non-negative integer",
     );
   });
 });

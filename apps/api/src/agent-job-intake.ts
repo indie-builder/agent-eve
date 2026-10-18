@@ -4,7 +4,7 @@ import {
   AgentJobPayloadSchema,
   type AgentJobAccepted,
   type AgentJobName,
-  type AgentJobPayload
+  type AgentJobPayload,
 } from "@agent-template/shared";
 import { createAgentQueue } from "./queue.js";
 
@@ -27,11 +27,14 @@ export function createAgentJobIntake(options: EnqueueAgentJobOptions): AgentJobI
   return {
     enqueue(input) {
       return enqueueAgentJob(input, options);
-    }
+    },
   };
 }
 
-async function enqueueAgentJob(input: unknown, options: EnqueueAgentJobOptions): Promise<AgentJobAccepted> {
+async function enqueueAgentJob(
+  input: unknown,
+  options: EnqueueAgentJobOptions,
+): Promise<AgentJobAccepted> {
   const payload = AgentJobPayloadSchema.parse(input);
   const queue = (options.createQueue ?? createAgentQueue)(options.redisUrl);
 

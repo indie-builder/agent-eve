@@ -3,7 +3,7 @@ import "./globals.css";
 
 export const metadata: Metadata = {
   title: "Agent Template",
-  description: "Next.js + Fastify + BullMQ agent template"
+  description: "Next.js + Fastify + BullMQ agent template",
 };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {

@@ -8,10 +8,9 @@ export const stackItems = [
   "PostgreSQL",
   "Redis",
   "BullMQ",
-  "Claude Agent SDK",
   "Eve Agent runtime",
   "Zod",
   "Pino",
   "Vitest",
-  "Turborepo"
+  "Turborepo",
 ];

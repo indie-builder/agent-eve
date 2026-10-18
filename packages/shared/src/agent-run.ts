@@ -38,9 +38,8 @@ export const AgentRunInputSchema = z
 
 export const AgentRunResultSchema = z.object({
   promptLength: z.number().int().nonnegative(),
-  runtime: z.enum(["claude", "eve"]),
+  runtime: z.literal("eve"),
   configured: z.boolean(),
-  model: z.string(),
   status: z.enum(["skipped", "waiting", "completed", "failed"]),
   events: z.array(AgentRunEventSchema).optional(),
   output: z.string().optional(),

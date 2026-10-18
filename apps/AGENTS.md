@@ -7,6 +7,7 @@
 - `web`: Next.js 前端应用。
 - `api`: Fastify HTTP API。
 - `worker`: BullMQ 后台任务进程。
+- `runtime`: Eve HTTP 服务、provider、Workflow 与 authored surface，独立于 API/Worker 部署。
 - `toolbox`: MCP Toolbox for Databases 配置目录，提供 Agent 可加载的数据库工具。
 
 ## 开发规则

@@ -4,7 +4,7 @@ import { defaultDatabaseUrl, getDatabaseUrl } from "./config.js";
 describe("getDatabaseUrl", () => {
   it("uses DATABASE_URL when provided", () => {
     expect(getDatabaseUrl({ DATABASE_URL: "postgresql://user:pass@localhost:5432/app" })).toBe(
-      "postgresql://user:pass@localhost:5432/app"
+      "postgresql://user:pass@localhost:5432/app",
     );
   });
 

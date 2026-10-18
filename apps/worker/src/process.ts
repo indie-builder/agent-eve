@@ -23,6 +23,7 @@ type AgentWorker = {
 type CreateWorkerOptions = {
   env: WorkerEnv;
   logger: ProcessLogger;
+  concurrency: number;
   processJob(job: AgentJob): Promise<AgentRunResult>;
   onCompleted(job: AgentJob): void;
   onFailed(job: AgentJob | undefined, error: Error): void;
@@ -41,7 +42,8 @@ export type CreateAgentWorkerProcessOptions = {
 
 function createBullMqWorker(options: CreateWorkerOptions): AgentWorker {
   const worker = new Worker<AgentJobPayload>(agentQueueName, options.processJob, {
-    connection: createBullMqConnectionOptions(options.env.REDIS_URL)
+    connection: createBullMqConnectionOptions(options.env.REDIS_URL),
+    concurrency: options.concurrency,
   });
 
   worker.on("completed", options.onCompleted);
@@ -50,7 +52,19 @@ function createBullMqWorker(options: CreateWorkerOptions): AgentWorker {
   return worker;
 }
 
-export function createAgentWorkerProcess(options: CreateAgentWorkerProcessOptions): AgentWorkerProcess {
+function createAgentJobError(result: AgentRunResult): Error {
+  const reason =
+    result.reason ??
+    (result.status === "skipped"
+      ? "Agent job skipped because the Eve Agent runtime is not configured"
+      : "Agent job failed");
+
+  return new Error(reason);
+}
+
+export function createAgentWorkerProcess(
+  options: CreateAgentWorkerProcessOptions,
+): AgentWorkerProcess {
   const logger = options.logger ?? createLogger({ service: "worker" });
   const processJob =
     options.processJob ??
@@ -60,27 +74,43 @@ export function createAgentWorkerProcess(options: CreateAgentWorkerProcessOption
   const worker = (options.createWorker ?? createBullMqWorker)({
     env: options.env,
     logger,
+    concurrency: options.env.WORKER_CONCURRENCY,
     async processJob(job) {
       logger.info({ jobId: job.id, jobName: job.name }, "processing agent job");
-      return processJob(job.data, options.env);
+      const result = await processJob(job.data, options.env);
+
+      // failed/skipped must reach BullMQ as a failed job; waiting is a resumable HITL pause, not an error.
+      if (result.status === "failed" || result.status === "skipped") {
+        throw createAgentJobError(result);
+      }
+
+      return result;
     },
     onCompleted(job) {
       logger.info({ jobId: job.id }, "agent job completed");
     },
     onFailed(job, error) {
       logger.error({ jobId: job?.id, error }, "agent job failed");
-    }
+    },
   });
 
   return {
     close() {
       return worker.close();
-    }
+    },
   };
 }
 
-export function registerWorkerShutdown(workerProcess: AgentWorkerProcess, signalTarget: NodeJS.Process = process): void {
-  signalTarget.on("SIGTERM", async () => {
-    await workerProcess.close();
-  });
+export function registerWorkerShutdown(
+  workerProcess: AgentWorkerProcess,
+  signalTarget: NodeJS.Process = process,
+): void {
+  let closing: Promise<void> | undefined;
+  const close = () => {
+    closing ??= workerProcess.close();
+    return closing;
+  };
+
+  signalTarget.on("SIGTERM", close);
+  signalTarget.on("SIGINT", close);
 }

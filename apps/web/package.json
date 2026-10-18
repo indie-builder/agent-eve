@@ -6,25 +6,25 @@
     "dev": "next dev --port 13000",
     "start": "next start --hostname 0.0.0.0 --port 13000",
     "build": "next build",
-    "lint": "eslint app src",
+    "lint": "oxlint --deny-warnings app src",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "test": "vitest run"
   },
   "dependencies": {
     "@agent-template/shared": "workspace:*",
     "@agent-template/ui": "workspace:*",
-    "next": "^16.2.9",
-    "react": "^19.2.7",
-    "react-dom": "^19.2.7",
-    "react-markdown": "^10.1.0",
-    "remark-gfm": "^4.0.1",
-    "zod": "^4.4.3"
+    "next": ">=16.4.2",
+    "react": ">=19.3.1",
+    "react-dom": ">=19.3.1",
+    "react-markdown": ">=10.1.0",
+    "remark-gfm": ">=4.0.1",
+    "zod": ">=4.6.7"
   },
   "devDependencies": {
-    "@tailwindcss/postcss": "^4.3.1",
-    "@types/react": "^19.2.17",
-    "@types/react-dom": "^19.2.3",
-    "tailwindcss": "^4.3.1",
-    "vitest": "^4.1.9"
+    "@tailwindcss/postcss": ">=4.3.3",
+    "@types/react": ">=19.3.0",
+    "@types/react-dom": ">=19.3.0",
+    "tailwindcss": ">=4.3.3",
+    "vitest": ">=5.0.5"
   }
 }

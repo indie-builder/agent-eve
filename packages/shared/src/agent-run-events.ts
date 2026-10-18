@@ -48,13 +48,7 @@ export const AgentRunEventSchema = z.discriminatedUnion("kind", [
   z.object({
     kind: z.literal("authorization"),
     connection: z.string(),
-    status: z.enum([
-      "required",
-      "authorized",
-      "declined",
-      "failed",
-      "timed-out",
-    ]),
+    status: z.enum(["required", "authorized", "declined", "failed", "timed-out"]),
     description: z.string().optional(),
     url: z.string().url().optional(),
     userCode: z.string().optional(),

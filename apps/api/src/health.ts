@@ -22,17 +22,11 @@ export type HealthAdapters = {
 async function checkDatabase(): Promise<DependencyState> {
   try {
     const { prisma } = await import("@agent-template/db");
-    await withTimeout(
-      prisma.$queryRaw`SELECT 1`,
-      800,
-      "PostgreSQL check timed out",
-    );
+    await withTimeout(prisma.$queryRaw`SELECT 1`, 800, "PostgreSQL check timed out");
     return { status: "ok", message: "PostgreSQL reachable" };
   } catch (error) {
     const message =
-      error instanceof Error && error.message.trim()
-        ? error.message
-        : "PostgreSQL check failed";
+      error instanceof Error && error.message.trim() ? error.message : "PostgreSQL check failed";
 
     return {
       status: "error",
@@ -56,9 +50,7 @@ async function checkRedis(redisUrl: string): Promise<DependencyState> {
     return { status: "ok", message: "Redis reachable" };
   } catch (error) {
     const message =
-      error instanceof Error && error.message.trim()
-        ? error.message
-        : "Redis check failed";
+      error instanceof Error && error.message.trim() ? error.message : "Redis check failed";
 
     return {
       status: "error",
@@ -91,11 +83,7 @@ function createDefaultAdapters(env: Env): HealthAdapters {
   };
 }
 
-async function withTimeout<T>(
-  promise: Promise<T>,
-  timeoutMs: number,
-  message: string,
-): Promise<T> {
+async function withTimeout<T>(promise: Promise<T>, timeoutMs: number, message: string): Promise<T> {
   let timeout: NodeJS.Timeout | undefined;
 
   try {
@@ -112,21 +100,12 @@ async function withTimeout<T>(
   }
 }
 
-export async function getHealth(
-  env: Env,
-  options: HealthOptions,
-): Promise<HealthStatus> {
+export async function getHealth(env: Env, options: HealthOptions): Promise<HealthStatus> {
   const adapters =
     options.adapters ??
-    (options.checkExternal
-      ? createDefaultAdapters(env)
-      : createSkippedAdapters());
-  const [database, redis] = await Promise.all([
-    adapters.database(),
-    adapters.redis(),
-  ]);
-  const status =
-    database.status === "error" || redis.status === "error" ? "degraded" : "ok";
+    (options.checkExternal ? createDefaultAdapters(env) : createSkippedAdapters());
+  const [database, redis] = await Promise.all([adapters.database(), adapters.redis()]);
+  const status = database.status === "error" || redis.status === "error" ? "degraded" : "ok";
 
   return createHealthStatus({
     service: "api",

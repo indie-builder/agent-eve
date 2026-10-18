@@ -6,18 +6,17 @@
     ".": "./src/index.ts"
   },
   "scripts": {
-    "build": "tsup src/index.ts --format esm",
-    "lint": "eslint src",
+    "build": "tsdown src/index.ts --format esm --no-dts",
+    "lint": "oxlint --deny-warnings src",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "test": "vitest run"
   },
   "dependencies": {
-    "@agent-template/agent-claude": "workspace:*",
     "@agent-template/agent-eve": "workspace:*",
     "@agent-template/shared": "workspace:*",
-    "zod": "^4.4.3"
+    "zod": ">=4.6.7"
   },
   "devDependencies": {
-    "vitest": "^4.1.9"
+    "vitest": ">=5.0.5"
   }
 }

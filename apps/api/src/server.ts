@@ -10,3 +10,12 @@ try {
   app.log.error(error);
   process.exit(1);
 }
+
+let closing: Promise<void> | undefined;
+const close = () => {
+  closing ??= app.close();
+  return closing;
+};
+
+process.on("SIGTERM", close);
+process.on("SIGINT", close);

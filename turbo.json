@@ -7,10 +7,29 @@
     },
     "build": {
       "dependsOn": ["^build"],
-      "outputs": [".next/**", "dist/**"]
+      "outputs": [".next/**", "dist/**", ".output/**", ".eve/compile/**", ".eve/discovery/**"],
+      "env": [
+        "NEXT_PUBLIC_API_BASE_URL",
+        "ANTHROPIC_BASE_URL",
+        "ANTHROPIC_MODEL",
+        "EVE_AGENT_MODEL",
+        "EVE_MAX_OUTPUT_TOKENS",
+        "EVE_MODEL_CONTEXT_WINDOW_TOKENS",
+        "EVE_COMPACTION_THRESHOLD",
+        "EVE_MAX_INPUT_TOKENS_PER_SESSION",
+        "EVE_MAX_OUTPUT_TOKENS_PER_SESSION"
+      ],
+      "passThroughEnv": [
+        "ANTHROPIC_API_KEY",
+        "ANTHROPIC_AUTH_TOKEN",
+        "EVE_AGENT_SERVICE_TOKEN",
+        "TOOLBOX_URL",
+        "WORKFLOW_POSTGRES_URL"
+      ]
     },
     "lint": {
       "dependsOn": ["^lint"],
+      "inputs": ["$TURBO_DEFAULT$", "$TURBO_ROOT$/.oxlintrc.json"],
       "outputs": []
     },
     "typecheck": {

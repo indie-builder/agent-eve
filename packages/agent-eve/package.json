@@ -3,29 +3,22 @@
   "private": true,
   "type": "module",
   "exports": {
-    ".": "./src/index.ts"
+    ".": "./src/index.ts",
+    "./config": "./src/config.ts",
+    "./trust-policy": "./src/trust-policy.ts"
   },
   "scripts": {
-    "build": "tsup src/index.ts --format esm",
-    "eve:build": "eve build",
-    "eve:dev": "eve dev --host 0.0.0.0 --port 13010 --no-ui",
-    "eve:eval": "eve eval --strict",
-    "eve:eval:list": "eve eval --list",
-    "eve:info": "eve info --json",
-    "eve:start": "eve start --host 0.0.0.0 --port 13010",
-    "lint": "eslint src agent evals",
+    "build": "tsdown src/index.ts --format esm --no-dts",
+    "lint": "oxlint --deny-warnings src",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "test": "vitest run"
   },
   "dependencies": {
     "@agent-template/shared": "workspace:*",
-    "@ai-sdk/anthropic": "^4.0.7",
-    "ai": "^7.0.14",
     "eve": "latest",
-    "just-bash": "^3.1.0",
-    "zod": "^4.4.3"
+    "zod": ">=4.6.7"
   },
   "devDependencies": {
-    "vitest": "^4.1.9"
+    "vitest": ">=5.0.5"
   }
 }

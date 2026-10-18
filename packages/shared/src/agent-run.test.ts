@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { ZodError } from "zod";
 import { AgentRunInputSchema, AgentRunResultSchema } from "./agent-run";
 
 describe("AgentRunResultSchema", () => {
@@ -7,19 +8,17 @@ describe("AgentRunResultSchema", () => {
       AgentRunResultSchema.parse({
         configured: true,
         events: [{ kind: "done", result: "Done" }],
-        model: "kimi-for-coding",
         output: "Done",
         promptLength: 9,
-        runtime: "claude",
+        runtime: "eve",
         status: "completed",
       }),
     ).toEqual({
       configured: true,
       events: [{ kind: "done", result: "Done" }],
-      model: "kimi-for-coding",
       output: "Done",
       promptLength: 9,
-      runtime: "claude",
+      runtime: "eve",
       status: "completed",
     });
   });
@@ -29,7 +28,6 @@ describe("AgentRunResultSchema", () => {
       AgentRunResultSchema.parse({
         configured: true,
         events: [{ kind: "waiting" }],
-        model: "kimi-for-coding",
         output: "请确认是否继续。",
         promptLength: 9,
         runtime: "eve",
@@ -100,6 +98,6 @@ describe("AgentRunResultSchema", () => {
         continuation: { token: "opaque-token" },
         responses: [{ requestId: "request-1", optionId: "a" }],
       }),
-    ).toThrow();
+    ).toThrow(ZodError);
   });
 });

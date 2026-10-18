@@ -5,10 +5,7 @@ export type EcommerceOrderStatusFixture =
   | "CANCELLED"
   | "REFUNDED";
 
-export type EcommercePaymentStatusFixture =
-  | "PENDING"
-  | "SUCCEEDED"
-  | "REFUNDED";
+export type EcommercePaymentStatusFixture = "PENDING" | "SUCCEEDED" | "REFUNDED";
 
 export type EcommerceFixture = {
   customers: Array<{
@@ -130,33 +127,27 @@ export function createEcommerceFixture(): EcommerceFixture {
   const customers = locations.flatMap((location, locationIndex) =>
     Array.from({ length: customersPerRegion }, (_, customerIndex) => {
       const ordinal = locationIndex * customersPerRegion + customerIndex + 1;
-      const segment = (["NEW", "ACTIVE", "VIP", "AT_RISK"] as const)[
-        ordinal % 4
-      ]!;
+      const segment = (["NEW", "ACTIVE", "VIP", "AT_RISK"] as const)[ordinal % 4]!;
 
       return {
         id: `ecom_customer_${String(ordinal).padStart(3, "0")}`,
         customerCode: `CUST-${String(ordinal).padStart(4, "0")}`,
         segment,
         ...location,
-        registeredAt: new Date(
-          Date.UTC(2025, ordinal % 12, (ordinal % 27) + 1),
-        ),
+        registeredAt: new Date(Date.UTC(2025, ordinal % 12, (ordinal % 27) + 1)),
       };
     }),
   );
-  const products = productCatalog.map(
-    ([sku, name, category, brand, unitPrice], index) => ({
-      id: `ecom_product_${String(index + 1).padStart(3, "0")}`,
-      sku,
-      name,
-      category,
-      brand,
-      unitPrice: money(unitPrice),
-      isActive: true,
-      createdAt: new Date(Date.UTC(2025, index % 12, (index % 27) + 1)),
-    }),
-  );
+  const products = productCatalog.map(([sku, name, category, brand, unitPrice], index) => ({
+    id: `ecom_product_${String(index + 1).padStart(3, "0")}`,
+    sku,
+    name,
+    category,
+    brand,
+    unitPrice: money(unitPrice),
+    isActive: true,
+    createdAt: new Date(Date.UTC(2025, index % 12, (index % 27) + 1)),
+  }));
   const orders: EcommerceFixture["orders"] = [];
   const orderItems: EcommerceFixture["orderItems"] = [];
   const payments: EcommerceFixture["payments"] = [];
@@ -164,9 +155,7 @@ export function createEcommerceFixture(): EcommerceFixture {
   for (let day = 0; day < orderDays; day += 1) {
     for (let sequence = 0; sequence < ordersPerDay; sequence += 1) {
       const ordinal = day * ordersPerDay + sequence;
-      const placedAt = new Date(
-        Date.UTC(2026, 4, 11 + day, 1 + (sequence % 10), sequence * 5),
-      );
+      const placedAt = new Date(Date.UTC(2026, 4, 11 + day, 1 + (sequence % 10), sequence * 5));
       const orderId = `ecom_order_${String(ordinal + 1).padStart(4, "0")}`;
       const orderNumber = `EC${placedAt.toISOString().slice(0, 10).replaceAll("-", "")}${String(sequence + 1).padStart(3, "0")}`;
       const customer = customers[(ordinal * 7) % customers.length]!;
@@ -176,8 +165,7 @@ export function createEcommerceFixture(): EcommerceFixture {
       let discountTotal = 0;
 
       for (let itemIndex = 0; itemIndex < itemCount; itemIndex += 1) {
-        const product =
-          products[(ordinal * 3 + itemIndex * 5) % products.length]!;
+        const product = products[(ordinal * 3 + itemIndex * 5) % products.length]!;
         const quantity = 1 + ((ordinal + itemIndex) % 2);
         const gross = Number(product.unitPrice) * quantity;
         const itemDiscount = (ordinal + itemIndex) % 5 === 0 ? gross * 0.1 : 0;
@@ -200,25 +188,19 @@ export function createEcommerceFixture(): EcommerceFixture {
 
       const shippingTotal = subtotal - discountTotal >= 199 ? 0 : 12;
       const orderTotal = subtotal - discountTotal + shippingTotal;
-      const isPaid =
-        status === "PAID" || status === "FULFILLED" || status === "REFUNDED";
-      const paidAt = isPaid
-        ? new Date(placedAt.getTime() + 8 * 60 * 1000)
-        : null;
+      const isPaid = status === "PAID" || status === "FULFILLED" || status === "REFUNDED";
+      const paidAt = isPaid ? new Date(placedAt.getTime() + 8 * 60 * 1000) : null;
       const fulfilledAt =
-        status === "FULFILLED"
-          ? new Date(placedAt.getTime() + 28 * 60 * 60 * 1000)
-          : null;
-      const refundRatio =
-        status === "REFUNDED" ? (sequence % 2 === 0 ? 1 : 0.4) : 0;
+        status === "FULFILLED" ? new Date(placedAt.getTime() + 28 * 60 * 60 * 1000) : null;
+      const refundRatio = status === "REFUNDED" ? (sequence % 2 === 0 ? 1 : 0.4) : 0;
 
       orders.push({
         id: orderId,
         orderNumber,
         customerId: customer.id,
-        channel: (
-          ["WEB", "MINI_PROGRAM", "MARKETPLACE", "LIVE_STREAM"] as const
-        )[(day + sequence) % 4]!,
+        channel: (["WEB", "MINI_PROGRAM", "MARKETPLACE", "LIVE_STREAM"] as const)[
+          (day + sequence) % 4
+        ]!,
         status,
         placedAt,
         paidAt,
@@ -236,15 +218,9 @@ export function createEcommerceFixture(): EcommerceFixture {
         payments.push({
           id: `${orderId}_payment`,
           orderId,
-          method: (["ALIPAY", "WECHAT_PAY", "BANK_CARD", "WALLET"] as const)[
-            ordinal % 4
-          ]!,
+          method: (["ALIPAY", "WECHAT_PAY", "BANK_CARD", "WALLET"] as const)[ordinal % 4]!,
           status:
-            status === "PENDING"
-              ? "PENDING"
-              : status === "REFUNDED"
-                ? "REFUNDED"
-                : "SUCCEEDED",
+            status === "PENDING" ? "PENDING" : status === "REFUNDED" ? "REFUNDED" : "SUCCEEDED",
           amount: money(isPaid ? orderTotal : 0),
           paidAt,
           createdAt: paidAt ?? placedAt,

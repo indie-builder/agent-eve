@@ -13,7 +13,7 @@ The act of accepting a requested Agent job into the system and returning accepta
 _Avoid_: Job route, enqueue helper
 
 **Agent runtime**:
-A selectable implementation of Agent behavior. The template may include multiple Agent runtimes, but a deployment chooses one through environment configuration.
+The Eve implementation of Agent behavior used by Chat SSE and queued Agent jobs.
 _Avoid_: Agent type, Agent mode
 
 **Agent authored surface**:
@@ -21,7 +21,7 @@ A runtime-owned filesystem tree containing stable instructions, connections, per
 _Avoid_: Runtime source code, platform Agent config
 
 **Agent run**:
-One execution of an Agent from a prompt through the selected Agent runtime. It may be started by Chat SSE or by a queued Agent job.
+One execution of an Agent from a prompt through the Eve Agent runtime. It may be started by Chat SSE or by a queued Agent job.
 _Avoid_: Agent work, job result
 
 **Agent run event**:
@@ -64,17 +64,13 @@ _Avoid_: Agent runtime, app service
 A Tool provider backed by MCP Toolbox for Databases.
 _Avoid_: Database helper, embedded database client
 
-**Toolbox toolset**:
+**Toolbox group**:
 A named group of Toolbox server tools used to generate a focused Agent capability.
-_Avoid_: Runtime plugin, database permission set
+_Avoid_: Toolbox toolset (deprecated upstream term), runtime plugin, database permission set
 
 **Agent MCP connection**:
 A connection owned by one Agent runtime that exposes an allowed subset of an external Tool provider to that runtime.
 _Avoid_: MCP Host, platform MCP registry
-
-**Claude Agent runtime**:
-A filesystem-first Claude Code project executed through Claude Agent SDK.
-_Avoid_: Cloud runtime, programmatic prompt wrapper
 
 **Eve Agent runtime**:
 A filesystem-first Agent runtime shaped by Eve's authored surface.

@@ -29,19 +29,19 @@ const seedEvents: SeedEvent[] = [
     createdAt: new Date("2026-07-04T09:00:02.000Z"),
     payload: {
       runId: "run_support_001",
-      runtime: "claude",
+      runtime: "eve",
       model: "kimi-for-coding",
       reason: "需要通过 Toolbox 读取最近 Agent run 记录。",
     },
   },
   {
     id: "evt-run-support-001-toolset",
-    type: "toolbox.toolset.loaded",
+    type: "toolbox.group.loaded",
     createdAt: new Date("2026-07-04T09:00:04.000Z"),
     payload: {
       runId: "run_support_001",
       toolProvider: "toolbox",
-      toolset: "agent_template_read_model",
+      group: "agent_template_read_model",
       tools: [
         "list-template-events",
         "get-template-event",

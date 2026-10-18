@@ -5,11 +5,21 @@ packages:
 allowBuilds:
   "@mongodb-js/zstd": false
   "@prisma/engines": true
+  cbor-extract: false
   esbuild: true
   msgpackr-extract: true
   node-liblzma: false
   prisma: true
   sharp: true
+  workerd: true
 
-minimumReleaseAgeExclude:
-  - eve@0.22.4
+# shortcut: 上游仍固定存在漏洞的传递依赖，上游发布修复后移除对应 override。
+overrides:
+  "@hono/node-server@<1.19.15": ">=1.19.15"
+  "fast-uri@>=3.0.0 <3.1.8": ">=3.1.8"
+  "hono@>=3.8.0 <4.13.7": ">=4.13.7"
+  "ip-address@<=10.7.0": ">=10.7.1"
+  "lodash@>=4.0.0 <4.17.24": ">=4.18.1"
+  "proxy-addr@>=1.1.0 <2.0.8": ">=2.0.8"
+  "qs@>=2.2.5 <6.16.0": ">=6.16.0"
+  "undici@>=7.0.0 <7.29.1": ">=7.29.1"

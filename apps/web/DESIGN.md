@@ -16,30 +16,30 @@
 
 ## Colors
 
-| Token | Value | Role |
-|-------|-------|------|
-| color-7 | `#F0F0F0` | Background |
-| color-6 | `#E0E0E0` | Surface |
+| Token   | Value     | Role         |
+| ------- | --------- | ------------ |
+| color-7 | `#F0F0F0` | Background   |
+| color-6 | `#E0E0E0` | Surface      |
 | color-1 | `#09090B` | Text Primary |
 | color-2 | `#646464` | Text Primary |
-| color-3 | `#FF4017` | Accent |
-| color-4 | `#BBBBBB` | Border |
-| color-5 | `#D9D9D9` | Border |
-| color-8 | `#FFFFFF` | Text Light |
+| color-3 | `#FF4017` | Accent       |
+| color-4 | `#BBBBBB` | Border       |
+| color-5 | `#D9D9D9` | Border       |
+| color-8 | `#FFFFFF` | Text Light   |
 
 ## Typography
 
 **Font stack:** Inter Display, Geist Mono, Inter, sans-serif
 
-| Level | Size | Usage |
-|-------|------|-------|
-| text-xs | 12px | Captions, metadata |
-| text-sm | 14px | Labels, secondary text |
-| text-base | 16px | Body text (default) |
-| text-lg | 18px | Subheadings, emphasis |
-| text-xl | 30px | Section headings |
-| text-2xl | 40px | Section headings |
-| text-3xl | 58px | Section headings |
+| Level     | Size | Usage                  |
+| --------- | ---- | ---------------------- |
+| text-xs   | 12px | Captions, metadata     |
+| text-sm   | 14px | Labels, secondary text |
+| text-base | 16px | Body text (default)    |
+| text-lg   | 18px | Subheadings, emphasis  |
+| text-xl   | 30px | Section headings       |
+| text-2xl  | 40px | Section headings       |
+| text-3xl  | 58px | Section headings       |
 
 **Weight scale:** 400 · 500 · 600
 **Line heights:** 63.36px · 30px · 40px · 27px · 21px · 24px · 16px · 16.8px

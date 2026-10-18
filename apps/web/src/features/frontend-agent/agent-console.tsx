@@ -28,9 +28,7 @@ export function AgentConsole() {
   const [streamedOutput, setStreamedOutput] = useState("");
   const [error, setError] = useState("");
   const [status, setStatus] = useState<AgentConsoleStatus>("idle");
-  const [continuation, setContinuation] = useState<AgentContinuation | null>(
-    null,
-  );
+  const [continuation, setContinuation] = useState<AgentContinuation | null>(null);
   const submitting = status === "submitting" || status === "running";
   const messageParts = buildAgentMessageParts(events);
 
@@ -46,10 +44,7 @@ export function AgentConsole() {
     await executeAgentTurn({ prompt });
   }
 
-  async function executeAgentTurn(input: {
-    prompt?: string;
-    responses?: AgentInputResponse[];
-  }) {
+  async function executeAgentTurn(input: { prompt?: string; responses?: AgentInputResponse[] }) {
     setError("");
     setEvents([]);
     setResult(null);
@@ -75,9 +70,7 @@ export function AgentConsole() {
       setResult(chatResult);
       setContinuation(chatResult.continuation ?? null);
       setStreamedOutput(chatResult.output ?? chatResult.reason ?? "");
-      setStatus(
-        chatResult.status === "skipped" ? "skipped" : chatResult.status,
-      );
+      setStatus(chatResult.status === "skipped" ? "skipped" : chatResult.status);
     } catch (caught) {
       setError(getAgentChatErrorMessage(caught));
       setStatus("failed");
@@ -105,38 +98,23 @@ export function AgentConsole() {
         <textarea
           className="min-h-36 resize-y rounded-md border border-slate-200 bg-white px-3 py-2 text-sm leading-6 text-slate-950 shadow-sm outline-none transition focus:border-slate-400"
           onChange={(event) => setPrompt(event.target.value)}
-          placeholder={
-            continuation ? "继续当前 Agent 会话" : "描述你希望 Agent 完成的工作"
-          }
+          placeholder={continuation ? "继续当前 Agent 会话" : "描述你希望 Agent 完成的工作"}
           value={prompt}
         />
       </label>
 
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
         <Button disabled={submitting} type="submit">
-          {submitting
-            ? "运行中..."
-            : status === "failed"
-              ? "重试"
-              : "发送给 Agent"}
+          {submitting ? "运行中..." : status === "failed" ? "重试" : "发送给 Agent"}
         </Button>
         {continuation ? (
-          <Button
-            disabled={submitting}
-            onClick={handleNewSession}
-            type="button"
-            variant="outline"
-          >
+          <Button disabled={submitting} onClick={handleNewSession} type="button" variant="outline">
             开始新会话
           </Button>
         ) : null}
         <p
           aria-live="polite"
-          className={
-            status === "failed"
-              ? "text-sm text-red-600"
-              : "text-sm text-slate-500"
-          }
+          className={status === "failed" ? "text-sm text-red-600" : "text-sm text-slate-500"}
         >
           {getStatusText(status, error)}
         </p>
@@ -166,19 +144,12 @@ export function AgentConsole() {
             ) : (
               <div className="flex flex-col gap-3 break-words text-sm text-slate-950">
                 <AgentMarkdown>
-                  {streamedOutput ||
-                    result?.output ||
-                    result?.reason ||
-                    "Agent 未返回内容。"}
+                  {streamedOutput || result?.output || result?.reason || "Agent 未返回内容。"}
                 </AgentMarkdown>
               </div>
             )}
           </div>
-          {result ? (
-            <p className="mt-3 text-xs text-slate-500">
-              Runtime: {result.runtime} / Model: {result.model}
-            </p>
-          ) : null}
+          {result ? <p className="mt-3 text-xs text-slate-500">Runtime: {result.runtime}</p> : null}
         </section>
       ) : null}
 
@@ -263,9 +234,7 @@ function getAgentChatErrorMessage(caught: unknown) {
     return "启动 Agent run 失败，请重试。";
   }
 
-  if (
-    caught.message.startsWith("Agent chat rejected the request with status ")
-  ) {
+  if (caught.message.startsWith("Agent chat rejected the request with status ")) {
     return `后端拒绝了 Agent Chat 请求（状态码 ${caught.message.split(" ").at(-1)}）。`;
   }
 

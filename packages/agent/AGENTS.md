@@ -2,27 +2,27 @@
 
 ## 职责
 
-`packages/agent` 是 Agent runtime 公共边界，负责解析 runtime env、选择 runtime，并执行 Agent run 的公共 contract。
+`packages/agent` 是 Agent runtime 公共边界，直接委派 Eve runtime，并执行 Agent run 的公共 contract。
 
 ## 能力边界
 
-- `AgentRuntimeEnvSchema` / `parseAgentRuntimeEnv` 统一维护 Agent runtime 相关环境变量。
-- `getAgentRuntimeStateFromEnv` 返回当前 runtime、配置状态和模型。
-- `runAgent` 是 Chat SSE 和 Worker 共同调用的 Agent run execution seam，负责 run input validation、runtime dispatch 和 execution result assembly。
-- 具体实现委派给 `@agent-template/agent-claude` 或 `@agent-template/agent-eve`。
+- `AgentRuntimeEnvSchema` / `parseAgentRuntimeEnv` 统一维护 Eve HTTP client 连接环境变量。
+- `getAgentRuntimeStateFromEnv` 返回固定 runtime `eve`、连接配置状态。
+- `runAgent` 是 Chat SSE 和 Worker 共同调用的 Agent run execution seam，负责 run input validation、Eve dispatch 和 execution result assembly。
+- 具体实现委派给 `@agent-template/agent-eve`。
 - runtime adapter 已产生的 Agent run event 通过 `AgentRunResult.events` 透出；这里不新增持久化。
-- shared continuation 保持 runtime-neutral opaque token；selector 不解析 runtime cursor。结构化 input response 仅分发给声明支持 continuation 的 runtime。
-- `TOOLBOX_URL` 只在选择 Claude 时透传给对应 runtime；Eve 进程从自己的环境读取连接配置。公共 selector 不维护 MCP allowlist 或 client lifecycle。
+- shared continuation 保持 runtime-neutral opaque token；Eve adapter 负责解析自己的 session cursor。结构化 input response 原样交给 Eve。
+- `runAgent` 接受 `runEve` 注入，测试用它替换 runtime 调用。
 
 ## 不应该做
 
 - 不在这里处理 HTTP 请求。
 - 不在这里处理 BullMQ job 生命周期。
 - 不把具体业务 prompt 或产品逻辑写进公共 agent package。
-- 不从 request payload 或 job payload 覆盖 runtime；runtime 只读 `AGENT_RUNTIME`。
-- 不要求本地开发必须配置 `ANTHROPIC_API_KEY`。
-- 不把未配置 runtime 伪装成已执行成功；返回 `status: "skipped"`。
-- 不把 Toolbox server 当成第三套 Agent runtime；它是 Claude/Eve 各自连接的外部 Tool provider。
+- 不从 request payload 或 job payload 选择或覆盖 runtime；`runtime` 固定为 `eve`。
+- 不要求本地开发必须配置 `ANTHROPIC_API_KEY` 或 `EVE_AGENT_HOST`；未配置 host 时 Eve 返回 `status: "skipped"`。
+- 不把未配置 runtime 伪装成已执行成功。
+- 不把 Toolbox server 当成 Agent runtime；它是 Eve 连接的外部 Tool provider。
 
 ## 验证
 
