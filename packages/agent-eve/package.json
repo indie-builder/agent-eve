@@ -16,9 +16,9 @@
   "dependencies": {
     "@agent-template/shared": "workspace:*",
     "eve": "latest",
-    "zod": "^4.6.7"
+    "zod": ">=4.6.7"
   },
   "devDependencies": {
-    "vitest": "^5.0.5"
+    "vitest": ">=5.0.5"
   }
 }

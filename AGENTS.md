@@ -11,11 +11,10 @@ TypeScript Agent 平台模板：`apps/` 放运行进程，`packages/` 放可复�
 - 用户可见文案默认中文；技术名词保留英文。
 - 本项目是个人项目，技术选型和升级优先采用当前最佳实践与最新稳定技术栈；允许直接升级大版本，并同步迁移调用方、配置和测试。
 - 面向新版本直接实现，删除被替代的旧实现；不要为兼容旧版本堆积兼容层、双轨逻辑或过渡代码。确有生态工具尚未支持的必要适配时，只保留最小实现并注明移除条件。
-- 依赖声明锁住所采用的大版本，不限制主动升级大版本：优先 `^x.y.z`；`0.x` 使用 `>=0.y.z <1.0.0`。
+- 依赖升级以 npm 当前已发布的最新稳定版为准，允许跨大版本；manifest 使用 `>=x.y.z`，不设置大版本上限（包括 `0.x`）。npm alias 同样使用无上限稳定范围；不自动采用 beta、RC 或其他预发布，即使 latest tag 指向它们。
+- pnpm-lock.yaml 固定已验证版本，部署使用 frozen lockfile；packageManager、.nvmrc 和容器镜像记录本次验证版本以保证可复现，不作为主动升级上限。
 - 例外：`packages/agent-eve` 的官方 `eve` 依赖按用户要求使用 `latest`。
-- TypeScript CLI 默认使用 TS7 原生编译器；`typescript` 包名保留为
-  `@typescript/typescript6` 兼容 API，供 Next.js plugin
-  等工具使用。在 TS7 JavaScript API 和相关生态完成适配前不要删除兼容层。
+- TypeScript 统一使用最新稳定的原生 `typescript` 包；Next.js 使用官方 CLI 类型检查路径，不维护 TS6 alias 或旧 JavaScript API 兼容层。
 - 工具链统一使用 Oxlint（lint）、Oxfmt（format）和 tsdown / Rolldown（独立 package 打包）；Next.js 与 Eve 保留各自官方构建流程，类型检查继续使用 TS7。
 - 共享代码优先放 `packages/`；应用层只编排运行流程。
 - 不把业务假设写死进模板；模板保持可复用、低耦合。

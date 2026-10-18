@@ -8,22 +8,16 @@
 - 后端：TypeScript 7 + Fastify + Prisma + PostgreSQL + Redis + BullMQ + MCP Toolbox + Eve + Zod + Pino + Vitest
 - 工程化：pnpm Workspace + Turborepo + Oxlint + Oxfmt + tsdown / Rolldown
 
-开发环境使用 Node.js 26.12.0（`.nvmrc`）和 `package.json` 声明的 pnpm 版本。使用 nvm 时先运行 `nvm install && nvm use`。依赖跟进最新稳定版；大版本升级直接迁移代码，不保留旧版双轨实现。
+开发环境使用 Node.js 26.12.0（`.nvmrc`）和 `package.json` 声明的 pnpm 版本。使用 nvm 时先运行 `nvm install && nvm use`。依赖跟进最新稳定版，manifest 使用无大版本上限的 `>=x.y.z`；大版本升级直接迁移代码，不保留旧版双轨实现。锁文件固定本次验证版本，部署使用 `pnpm install --frozen-lockfile`。pnpm 的 packageManager、Node 的 .nvmrc 和镜像标签记录可复现版本，后续按最新稳定发布主动更新。
 
 ## TypeScript 7
 
-项目默认使用 TypeScript 7 原生编译器：`pnpm exec tsc` 和各 workspace 的
-`typecheck`、直接 `tsc` 构建均执行 TS7。TypeScript 7.0 尚未提供稳定的
-JavaScript API，因此同时保留 TypeScript 6 兼容包，供 Next.js language-service plugin 等工具使用。
+项目统一使用最新稳定 `typescript` 原生编译器。各 workspace 的类型检查与直接 `tsc` 构建均使用 TypeScript 7；Next.js 16.4 默认走 CLI 类型检查，因此已移除 TS6 兼容包和双编译器 alias。
 
 ```bash
-pnpm exec tsc --version   # 默认编译器：TypeScript 7
-pnpm exec tsc6 --version  # 兼容编译器：TypeScript 6
-pnpm typecheck            # 使用 TypeScript 7 检查全部 workspace
+pnpm exec tsc --version
+pnpm typecheck
 ```
-
-在依赖稳定的 TypeScript 7 JavaScript API 且相关工具完成适配前，不要移除
-`@typescript/typescript6` 兼容层。
 
 ## 快速开始
 

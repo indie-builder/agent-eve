@@ -10,7 +10,7 @@
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },
   "devDependencies": {
-    "@toolbox-sdk/server": "^1.14.0",
-    "vitest": "^5.0.5"
+    "@toolbox-sdk/server": ">=1.14.0",
+    "vitest": ">=5.0.5"
   }
 }

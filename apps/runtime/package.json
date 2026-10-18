@@ -15,13 +15,13 @@
   },
   "dependencies": {
     "@agent-template/agent-eve": "workspace:*",
-    "@ai-sdk/anthropic": "^4.0.82",
-    "@workflow/world-postgres": "^5.0.4",
-    "ai": "^7.0.143",
+    "@ai-sdk/anthropic": ">=4.0.82",
+    "@workflow/world-postgres": ">=5.0.4",
+    "ai": ">=7.0.143",
     "eve": "latest",
-    "just-bash": "^3.6.0"
+    "just-bash": ">=3.6.0"
   },
   "devDependencies": {
-    "vitest": "^5.0.5"
+    "vitest": ">=5.0.5"
   }
 }
