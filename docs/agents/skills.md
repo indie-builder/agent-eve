@@ -14,27 +14,44 @@ Plugin 声明位于 `.claude/settings.json`，使用 `--scope project` 安装。
 | `impeccable@impeccable`                         | 4.6.0        | 界面设计、审查、组件与体验优化，包含原生agents/hooks                                    | project  |
 | `superpowers-zh@superpowers-zh`                 | 1.7.14       | 中文工程流程，含 `chinese-commit-conventions`                                           | project  |
 | `agentic-awesome-skills@agentic-awesome-skills` | 19.9.0       | 含 `agents-md`、`api-design-principles`、`sql-optimization-patterns` 的社区技能集       | project  |
+| `redis-development@claude-plugins-official`     | 1.4.0        | Redis开发、连接和性能最佳实践                                                           | project  |
 
-后两组是完整套件，不支持只安装其中一个 Skill。社区 Plugin 包含2649个技能，superpowers-zh 包含21个技能，会附带所需三项/一项之外的能力；本项目按用户要求优先采用 Plugin，而不是复制其中的文件。Impeccable 与 superpowers-zh 的 SessionStart 等 hooks 由 Plugin 自己管理，项目不手抄 hooks。
+社区技能集和中文superpowers是完整套件，不支持只安装其中一个 Skill。社区 Plugin 包含2649个技能，superpowers-zh 包含21个技能，会附带所需三项/一项之外的能力；本项目按用户要求优先采用 Plugin，而不是复制其中的文件。Impeccable 与 superpowers-zh 的 SessionStart 等 hooks 由 Plugin 自己管理，项目不手抄 hooks。
 
 ## 按项目用途分类
 
-| 项目维度         | 优先使用                                                                                         | 本地后备/自定义                    |
-| ---------------- | ------------------------------------------------------------------------------------------------ | ---------------------------------- |
-| 前端组件与体验   | `impeccable:impeccable`                                                                          | `shadcn`、`react-best-practices`   |
-| Next开发与缓存   | `nextjs` Plugin 的专项技能                                                                       | 无重复本地副本                     |
-| API与数据库      | 社区Plugin的API/SQL技能、PostgreSQL best practices Plugin                                        | `prisma-orm-setup`                 |
-| Eve Agent        | 无对应官方Claude Plugin                                                                          | `eve`，以已安装eve包内docs为事实源 |
-| 需求、实施与质量 | Matt Pocock的27个稳定技能、superpowers-zh                                                        | 无重复本地副本                     |
-| 工程文档与提交   | 社区Plugin的`agents-md`、Matt的`writing-for-agents`、`superpowers-zh:chinese-commit-conventions` | `find-skills`                      |
-| 项目业务         | 无远端Plugin                                                                                     | 4个`ecommerce-*`业务Skill          |
+| 项目维度         | 优先使用                                                                                         | 本地后备/自定义                         |
+| ---------------- | ------------------------------------------------------------------------------------------------ | --------------------------------------- |
+| 前端组件与体验   | `impeccable:impeccable`                                                                          | `shadcn`、`vercel-react-best-practices` |
+| Next开发与缓存   | `nextjs` Plugin 的专项技能                                                                       | 无重复本地副本                          |
+| API与数据库      | 社区Plugin的API/SQL技能、PostgreSQL best practices Plugin                                        | `prisma-orm-setup`                      |
+| Eve Agent        | 无对应官方Claude Plugin                                                                          | `eve`，以已安装eve包内docs为事实源      |
+| 需求、实施与质量 | Matt Pocock的27个稳定技能、superpowers-zh                                                        | 无重复本地副本                          |
+| 工程文档与提交   | 社区Plugin的`agents-md`、Matt的`writing-for-agents`、`superpowers-zh:chinese-commit-conventions` | `find-skills`                           |
+| 项目业务         | 无远端Plugin                                                                                     | 4个`ecommerce-*`业务Skill               |
+
+## 按技术栈补齐的最佳实践
+
+通过 `npx skills@latest find <技术>` 查询并核对来源后，新增以下项目能力：
+
+| 技术               | 采用技能/Plugin                                   | 来源与选择依据                                                                            |
+| ------------------ | ------------------------------------------------- | ----------------------------------------------------------------------------------------- |
+| Fastify / Pino集成 | `fastify-best-practices`                          | Fastify维护者Matteo Collina，搜索显示74.7K安装，覆盖plugins、validation、inject测试与Pino |
+| Turborepo          | `turborepo`                                       | Vercel官方，82.5K安装，要求阅读当前安装turbo包内docs                                      |
+| pnpm 12            | `pnpm`                                            | antfu/skills，专项指导覆盖pnpm12与workspace配置                                           |
+| Vitest 5           | `vitest`                                          | antfu/skills，41.2K安装，当前内容以Vitest5为基线                                          |
+| tsdown             | `tsdown`                                          | rolldown/tsdown官方当前技能；未采用索引中已失效的antfu旧条目                              |
+| Oxlint / Oxfmt     | `migrate-oxlint`、`migrate-oxfmt`                 | oxc-project/oxc官方，搜索显示7.6K/4.2K安装，定位为迁移和配置维护参考                      |
+| Redis              | `redis-development@claude-plugins-official` 1.4.0 | Redis官方Plugin，scope project，优先于重复本地技能                                        |
+
+现有社区Plugin提供 `bullmq-specialist`、`zod-validation-expert`、Docker和TypeScript指导，不重复安装。它们的个别示例可能落后于BullMQ6/Zod4，涉及具体API时以当前安装版本与官方文档为准。Pino未采用低安装量非官方技能，由Fastify官方维护者技能和现有logger规则覆盖。
 
 ## 本地 Skill（第二选项）
 
-真实文件在 `.agents/skills`，通过 `.claude/skills/<name> → ../../.agents/skills/<name>` 供 Claude Code 发现，当前共 **9个**：
+外部技能统一由 Skills CLI 管理，来源固定在 `skills-lock.json`。真实文件统一放 `.agents/skills/<name>`，以 `.claude/skills` 相对链接发现；CLI add的复制结果和update的链接结果统一收敛为此单副本布局。当前是 **12个CLI管理技能 + 4个本地业务技能**。
 
-- 外部后备5个：`find-skills`、`react-best-practices`、`shadcn`、`prisma-orm-setup`、`eve`。
-- 本地业务4个：`ecommerce-sales-analysis`、`ecommerce-product-analysis`、`ecommerce-order-operations`、`ecommerce-fulfillment-operations`。
+- CLI管理：`find-skills`、`vercel-react-best-practices`、`shadcn`、`prisma-orm-setup`、`eve`、`fastify-best-practices`、`turborepo`、`pnpm`、`vitest`、`tsdown`、`migrate-oxlint`、`migrate-oxfmt`。
+- 本地业务4个仍放在 `.agents/skills`，通过 `.claude/skills` 相对链接发现。
 
 保留后备的依据是未找到覆盖该技能的官方Claude Plugin。Prisma虽然有官方MCP Plugin，但不含新版`prisma-orm-setup`，不能以同品牌替代实际能力；shadcn当前的Cursor Plugin也不等于Claude Plugin。
 
@@ -51,8 +68,18 @@ Eve服务的 `apps/runtime/agent/skills` 另有4个由Toolbox生成的业务Skil
 
 ## 来源与维护
 
-[skill-sources.json](../../.agents/skill-sources.json) 记录项目Plugin的来源/版本/覆盖、后备技能的repo/ref/path/commit/目录校验和、本地业务技能和退休映射。Plugin/marketplace启用规则以 `.claude/settings.json` 为准。
+`skills-lock.json` 是外部项目技能的CLI来源锁；[skill-sources.json](../../.agents/skill-sources.json) 记录Plugin的来源/版本/覆盖、本地技能校验和及退休映射。Plugin/marketplace启用规则以 `.claude/settings.json` 为准。
 
-更新顺序：先检查对应Plugin、用Claude Code更新项目安装，再完整同步无Plugin后备目录；上游改名同步迁移，上游确认删除同步删除。项目业务Skill不因缺少远端目录而删除。外部技能指导服从项目规则，尤其最新稳定依赖、单Eve、默认本地验证、凭证只在环境中等约束。
+常用命令：
+
+```bash
+npx skills@latest find fastify
+npx skills@latest add mcollina/skills --skill fastify-best-practices --agent claude-code -y
+npx skills@latest list --agent claude-code
+npx skills@latest update --project -y
+npx skills@latest remove <skill-name> --agent claude-code -y
+```
+
+更新顺序：先检查对应Plugin、用Claude Code更新项目安装，再用Skills CLI更新无Plugin后备目录并核对远端文件树；上游改名同步迁移，上游确认删除同步删除。项目业务Skill不因缺少远端目录而删除。外部技能指导服从项目规则，尤其最新稳定依赖、单Eve、默认本地验证、凭证只在环境中等约束。
 
 Plugin新增或更新后需要在新会话生效。当前会话的技能列表可能仍是启动时快照；重新启动Claude Code后再用 `/plugin` 检查。Impeccable原生引擎首次运行可能下载平台二进制；本次未执行引擎下载或完整设计hook回合。

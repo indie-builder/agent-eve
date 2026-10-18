@@ -50,10 +50,11 @@ pnpm db:seed
 
 - 研发默认使用 Claude Code，业务 Agent runtime 仍为 Eve；不维护 Codex 兼容配置。
 - 技能优先采用对应的 Claude Code Plugin，以项目维度安装（`claude plugin install <plugin>@<marketplace> --scope project`）；不支持项目维度时才使用用户维度。
-- 只有没有对应 Plugin 或项目自定义的技能才安装到项目目录。真实文件放 `.agents/skills/<skill-name>`，Claude Code 发现路径为 `.claude/skills/<skill-name> -> ../../.agents/skills/<skill-name>`。
-- 查找技能统一使用 `find-skills`；先核对是否有对应 Plugin，再决定本地安装。Plugin 自己持有 skills/agents/hooks，不复制进项目或修改其缓存。
-- Plugin 和 marketplace 声明合并到 `.claude/settings.json`，保留已有设置。后备技能用 sparse checkout 完整替换，远端删除文件与退休技能同步删除，改名时更新 Claude 链接与项目引用。
-- 来源、版本与本地定制记录在 `.agents/skill-sources.json`；分类清单见 `docs/agents/skills.md`。本地业务技能单独标记，不因远端缺失删除。
+- 只有没有对应 Plugin 或项目自定义的技能才安装到项目目录。外部技能通过 Skills CLI 管理，真实文件统一存 `.agents/skills/<skill-name>`，`.claude/skills` 使用相对链接发现，不维护第二份手工镜像；项目自定义技能同样按此目录布局保留。
+- 查找技能统一使用 `find-skills` 与 `npx skills@latest find <技术或用途>`；先核对是否有对应 Plugin，再决定本地安装。Plugin 自己持有 skills/agents/hooks，不复制进项目或修改其缓存。
+- Plugin 和 marketplace 声明合并到 `.claude/settings.json`，保留已有设置。无 Plugin 的后备技能通过 `npx skills@latest add <来源> --skill <名称> --agent claude-code -y` 管理，默认项目维度，不加 `-g`；更新用 `npx skills@latest update --project -y`，来源锁文件提交到仓库。
+- 更新后核对远端组件清单：删除已退休技能、旧链接和上游已删文件，不能只做增量复制；改名时更新 Claude 链接与项目引用。
+- Skills CLI 管理来源以 `skills-lock.json` 为准；Plugin与本地业务边界记录在 `.agents/skill-sources.json`，分类清单见 `docs/agents/skills.md`。本地业务技能单独标记，不因远端缺失删除。
 - 不把已安装技能清单写进 AGENTS.md。
 
 ## Agent skills

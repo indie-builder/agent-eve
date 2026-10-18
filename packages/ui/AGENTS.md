@@ -19,7 +19,7 @@
 ## 设计规则
 
 - shadcn/ui 组件和组合模式参考 `.claude/skills/shadcn`。
-- UI 性能规则参考 `.claude/skills/react-best-practices`。
+- UI 性能规则参考 `.claude/skills/vercel-react-best-practices`。
 - 高阶视觉打磨参考 `impeccable:impeccable`。
 
 ## 验证

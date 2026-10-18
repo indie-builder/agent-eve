@@ -5,7 +5,8 @@
     "postgres-best-practices@supabase-agent-skills": true,
     "impeccable@impeccable": true,
     "superpowers-zh@superpowers-zh": true,
-    "agentic-awesome-skills@agentic-awesome-skills": true
+    "agentic-awesome-skills@agentic-awesome-skills": true,
+    "redis-development@claude-plugins-official": true
   },
   "extraKnownMarketplaces": {
     "nextjs": {
