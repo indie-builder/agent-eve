@@ -1,4 +1,4 @@
-import { Client } from "eve/client";
+import { Client, ClientError } from "eve/client";
 import type {
   ClientSessionState,
   InputResponse,
@@ -98,6 +98,7 @@ export async function runEveAgent(
   options: {
     createClient?: (host: string, config: EveAgentConfig) => EveClient;
     onEvent?: (event: AgentRunEvent) => void;
+    signal?: AbortSignal;
   } = {},
 ): Promise<EveAgentRunResult> {
   if (!config.host) {
@@ -125,16 +126,26 @@ export async function runEveAgent(
     );
   }
 
-  const client = (options.createClient ?? createEveClient)(config.host, config);
   const events: AgentRunEvent[] = [];
   const rawEvents: MessageStreamEvent[] = [];
   const projectionState = { messageText: "" };
   const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), config.requestTimeoutMs);
+  let abortReason = "Eve Agent request cancelled";
+  const cancel = () => controller.abort();
+  options.signal?.addEventListener("abort", cancel, { once: true });
+  if (options.signal?.aborted) cancel();
+  const timeout = setTimeout(() => {
+    if (!controller.signal.aborted) {
+      abortReason = "Eve Agent request timed out";
+      controller.abort();
+    }
+  }, config.requestTimeoutMs);
   let session: EveClientSession | undefined;
   let response: EveMessageResponse | undefined;
 
   try {
+    controller.signal.throwIfAborted();
+    const client = (options.createClient ?? createEveClient)(config.host, config);
     const inputResponses = input.responses ? toEveInputResponses(input.responses) : undefined;
     const turnOptions = {
       ...readEveTurnOptions(config),
@@ -158,16 +169,24 @@ export async function runEveAgent(
       response = created.response;
     }
 
+    controller.signal.throwIfAborted();
     for await (const rawEvent of response) {
+      controller.signal.throwIfAborted();
       rawEvents.push(rawEvent);
       for (const event of projectEveStreamEvent(rawEvent, projectionState)) {
         emitEvent(events, event, options.onEvent);
       }
     }
+    controller.signal.throwIfAborted();
   } catch (caught) {
-    const reason = formatCaughtError(caught);
+    const reason = controller.signal.aborted ? abortReason : formatCaughtError(caught);
     emitErrorOnce(events, reason, options.onEvent);
-    const continuation = session ? encodeEveContinuation(session.state) : undefined;
+    const continuation =
+      session &&
+      !(caught instanceof ClientError && caught.code === "session_not_active") &&
+      projectEveTurn(rawEvents)?.resumable !== false
+        ? encodeEveContinuation(session.state)
+        : undefined;
 
     return {
       status: "failed",
@@ -178,10 +197,12 @@ export async function runEveAgent(
     };
   } finally {
     clearTimeout(timeout);
+    options.signal?.removeEventListener("abort", cancel);
   }
 
   const projected = projectEveTurn(rawEvents);
-  const continuation = encodeEveContinuation(session.state);
+  const continuation =
+    projected?.resumable === false ? undefined : encodeEveContinuation(session.state);
 
   if (!projected) {
     const reason = "Eve Agent stream ended without a session boundary";
@@ -262,9 +283,5 @@ function emitErrorOnce(
 }
 
 function formatCaughtError(caught: unknown) {
-  if (caught instanceof Error && caught.name === "AbortError") {
-    return "Eve Agent request timed out";
-  }
-
   return caught instanceof Error ? caught.message : "Eve Agent request failed";
 }

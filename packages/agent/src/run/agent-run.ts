@@ -29,6 +29,7 @@ export type AgentRuntimeState = {
 export type RunAgentOptions = {
   runEve?: typeof runEveAgent;
   onEvent?: (event: AgentRunEvent) => void;
+  signal?: AbortSignal;
 };
 
 export function parseAgentRuntimeEnv(input: Record<string, unknown>): AgentRuntimeEnv {
@@ -51,11 +52,10 @@ export async function runAgent(
   const runtimeEnv = parseAgentRuntimeEnv(env);
   const agentState = getAgentRuntimeStateFromEnv(runtimeEnv);
 
-  const run = await (options.runEve ?? runEveAgent)(
-    parsed,
-    parseEveAgentConfig(runtimeEnv),
-    options.onEvent ? { onEvent: options.onEvent } : {},
-  );
+  const run = await (options.runEve ?? runEveAgent)(parsed, parseEveAgentConfig(runtimeEnv), {
+    ...(options.onEvent ? { onEvent: options.onEvent } : {}),
+    ...(options.signal ? { signal: options.signal } : {}),
+  });
 
   return {
     promptLength: parsed.prompt?.length ?? 0,

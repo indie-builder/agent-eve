@@ -5,6 +5,7 @@ import { runAgent } from "./agent-run.js";
 describe("Agent runtime seam", () => {
   it("runs an Agent run through the Eve runtime seam", async () => {
     const events: unknown[] = [];
+    const controller = new AbortController();
 
     await expect(
       runAgent(
@@ -15,7 +16,9 @@ describe("Agent runtime seam", () => {
           EVE_AGENT_HOST: "http://127.0.0.1:13000",
         },
         {
+          signal: controller.signal,
           runEve: async (_input, _config, options) => {
+            expect(options?.signal).toBe(controller.signal);
             options?.onEvent?.({ kind: "text", text: "Working" });
 
             return {

@@ -78,6 +78,7 @@ describe("Eve turn projection", () => {
     expect(projectEveTurn(events)).toEqual({
       status: "waiting",
       output: '{"answer":42}',
+      resumable: true,
     });
   });
 
@@ -89,7 +90,7 @@ describe("Eve turn projection", () => {
       }),
     ];
 
-    expect(projectEveTurn(events)).toEqual({ status: "waiting", output: "" });
+    expect(projectEveTurn(events)).toEqual({ status: "waiting", output: "", resumable: true });
   });
 
   it("gives a terminal session failure precedence over prior boundaries", () => {
@@ -111,6 +112,7 @@ describe("Eve turn projection", () => {
     expect(projectEveTurn(events)).toEqual({
       status: "failed",
       reason: "failed",
+      resumable: false,
     });
   });
 
@@ -145,6 +147,7 @@ describe("Eve turn projection", () => {
     expect(projectEveTurn(events)).toEqual({
       status: "failed",
       reason: "Provider request failed",
+      resumable: true,
     });
   });
 

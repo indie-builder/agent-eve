@@ -11,6 +11,12 @@
 - `src/protocol/continuation.ts`、`input-responses.ts`、`turn-projection.ts` 负责协议转换；`src/client/run-agent.test.ts` 与 `src/protocol/protocol.test.ts` 保留执行与协议 contract。
 - `src/security/trust-policy.ts` 通过 `./trust-policy` 导出 loopback 判断、token 摘要比较，供 runtime 复用。模型名解析、auth walk 与 provider 创建归 `apps/runtime`。
 
+## 生命周期
+
+`runEveAgent`接受可选`signal`，与单轮超时一起控制本地HTTP/stream读取；调用结束清理timer和外部signal listener。API的SSE下游提前关闭会传入取消，取消不等于停止远端durable turn。
+
+只有可续接的waiting/HITL或可恢复turn failure返回opaque continuation。终态session/turn及明确的`session_not_active`续接POST拒绝不再返回失效token；普通网络暂时失败仍保留已有会话句柄。
+
 ## 运行配置
 
 | 变量                               |   默认值 | 用途                                     |

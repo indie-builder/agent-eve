@@ -2,6 +2,30 @@ import { describe, expect, it } from "vitest";
 import { streamAgentChat } from "./agent-client";
 
 describe("Chat SSE 协议异常", () => {
+  it.each(["rejected", "pending"] as const)(
+    "协议失败时取消流并解锁，%s清理不阻塞原始错误",
+    async (cleanup) => {
+      let cancelled = false;
+      const body = new ReadableStream<Uint8Array>({
+        start(controller) {
+          controller.enqueue(
+            new TextEncoder().encode('event: error\ndata: {"message":"runtime failed"}\n\n'),
+          );
+        },
+        cancel() {
+          cancelled = true;
+          if (cleanup === "pending") return new Promise<void>(() => {});
+          throw new Error("cleanup failed");
+        },
+      });
+      await expect(
+        streamAgentChat({ prompt: "运行", fetcher: async () => new Response(body) }),
+      ).rejects.toThrow("runtime failed");
+      expect(cancelled).toBe(true);
+      expect(body.locked).toBe(false);
+    },
+  );
+
   it("区分网络不可达与后端 SSE error", async () => {
     await expect(
       streamAgentChat({
