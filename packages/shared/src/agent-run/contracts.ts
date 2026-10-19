@@ -12,11 +12,6 @@ export const AgentInputResponseSchema = z.discriminatedUnion("kind", [
     optionId: z.string().min(1),
   }),
   z.object({
-    kind: z.literal("selected-options"),
-    requestId: z.string().min(1),
-    optionIds: z.array(z.string().min(1)).min(1),
-  }),
-  z.object({
     kind: z.literal("text"),
     requestId: z.string().min(1),
     text: z.string().min(1),

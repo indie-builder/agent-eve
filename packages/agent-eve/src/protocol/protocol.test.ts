@@ -45,18 +45,6 @@ describe("Eve input response adapter", () => {
       { requestId: "request-2", text: "补充说明" },
     ]);
   });
-
-  it("fails explicitly when the runtime cannot represent multi-select", () => {
-    expect(() =>
-      toEveInputResponses([
-        {
-          kind: "selected-options",
-          requestId: "request-1",
-          optionIds: ["a", "b"],
-        },
-      ]),
-    ).toThrow("do not support multi-select");
-  });
 });
 
 describe("Eve turn projection", () => {

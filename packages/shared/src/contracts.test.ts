@@ -24,4 +24,19 @@ describe("Agent run input contract", () => {
       }),
     ).toThrow(ZodError);
   });
+
+  it("rejects multi-select input responses", () => {
+    expect(() =>
+      AgentRunInputSchema.parse({
+        continuation: { token: "opaque-token" },
+        responses: [
+          {
+            kind: "selected-options",
+            requestId: "request-1",
+            optionIds: ["a", "b"],
+          },
+        ],
+      }),
+    ).toThrow(ZodError);
+  });
 });

@@ -154,7 +154,7 @@ function AgentRunEventRow({
   return <LogRow label="Unknown event">{event.text}</LogRow>;
 }
 
-type InputDraft = { optionIds: string[]; text: string };
+type InputDraft = { optionId?: string; text: string };
 
 function InputRequestPanel({
   disabled,
@@ -168,28 +168,20 @@ function InputRequestPanel({
   const [drafts, setDrafts] = useState<Record<string, InputDraft>>({});
   const canSubmit = requests.every((request) => {
     const draft = drafts[request.requestId];
-    return Boolean(draft?.text.trim() || draft?.optionIds.length);
+    return Boolean(draft?.text.trim() || draft?.optionId);
   });
 
   function selectOption(request: AgentInputRequest, optionId: string) {
-    setDrafts((current) => {
-      const draft = current[request.requestId] ?? { optionIds: [], text: "" };
-      const optionIds = request.multiSelect
-        ? draft.optionIds.includes(optionId)
-          ? draft.optionIds.filter((id) => id !== optionId)
-          : [...draft.optionIds, optionId]
-        : [optionId];
-      return {
-        ...current,
-        [request.requestId]: { optionIds, text: "" },
-      };
-    });
+    setDrafts((current) => ({
+      ...current,
+      [request.requestId]: { optionId, text: "" },
+    }));
   }
 
   function setFreeform(requestId: string, text: string) {
     setDrafts((current) => ({
       ...current,
-      [requestId]: { optionIds: [], text },
+      [requestId]: { optionId: undefined, text },
     }));
   }
 
@@ -206,17 +198,13 @@ function InputRequestPanel({
           text: draft.text.trim(),
         };
       }
-      if (request.multiSelect) {
-        return {
-          kind: "selected-options",
-          requestId: request.requestId,
-          optionIds: draft.optionIds,
-        };
+      if (!draft.optionId) {
+        throw new Error(`Missing selected option for ${request.requestId}`);
       }
       return {
         kind: "selected-option",
         requestId: request.requestId,
-        optionId: draft.optionIds[0],
+        optionId: draft.optionId,
       };
     });
     void onInputResponses?.(responses);
@@ -227,17 +215,14 @@ function InputRequestPanel({
       <div className="font-medium">等待人工输入</div>
       <div className="mt-3 flex flex-col gap-4">
         {requests.map((request) => {
-          const draft = drafts[request.requestId] ?? {
-            optionIds: [],
-            text: "",
-          };
+          const draft = drafts[request.requestId] ?? { text: "" };
           return (
             <div className="flex flex-col gap-2" key={request.requestId}>
               <p>{request.prompt}</p>
               {request.options?.length ? (
                 <div className="flex flex-wrap gap-2">
                   {request.options.map((option) => {
-                    const selected = draft.optionIds.includes(option.id);
+                    const selected = draft.optionId === option.id;
                     return (
                       <button
                         aria-pressed={selected}
@@ -260,14 +245,18 @@ function InputRequestPanel({
                   })}
                 </div>
               ) : null}
-              {request.allowFreeform ? (
-                <input
-                  className="rounded-md border border-blue-200 bg-white px-3 py-2 text-sm text-slate-950"
-                  disabled={disabled || !onInputResponses}
-                  onChange={(event) => setFreeform(request.requestId, event.target.value)}
-                  placeholder="或输入自定义回答"
-                  value={draft.text}
-                />
+              {request.allowFreeform || !request.options?.length ? (
+                <label className="flex flex-col gap-1">
+                  <span className="text-xs font-medium text-blue-900">自定义回答</span>
+                  <input
+                    aria-label={request.prompt}
+                    className="rounded-md border border-blue-200 bg-white px-3 py-2 text-sm text-slate-950"
+                    disabled={disabled || !onInputResponses}
+                    onChange={(event) => setFreeform(request.requestId, event.target.value)}
+                    placeholder="输入回答"
+                    value={draft.text}
+                  />
+                </label>
               ) : null}
             </div>
           );
