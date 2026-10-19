@@ -13,7 +13,6 @@ export const AgentInputRequestSchema = z.object({
   tool: z.string(),
   display: z.enum(["confirmation", "select", "text"]).optional(),
   allowFreeform: z.boolean().optional(),
-  multiSelect: z.boolean().optional(),
   options: z
     .array(
       z.object({

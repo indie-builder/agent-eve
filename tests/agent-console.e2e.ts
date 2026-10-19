@@ -78,6 +78,35 @@ test.describe("Agent 控制台", { platforms: ["web"] }, () => {
     });
   });
 
+  test("无选项的人工输入经 API 校验并携带 opaque continuation 续接", async ({
+    app,
+    browser,
+    screen,
+    api,
+  }) => {
+    const requests: unknown[] = [];
+    await browser.route("**/agent/chat", async (route) => {
+      expect(route.request.url).toBe(`${api}/agent/chat`);
+      requests.push(JSON.parse(route.request.postData ?? "{}"));
+      await route.continue();
+    });
+    await app.open("/agent");
+    await screen.getByLabel("Prompt").fill("补充说明");
+    await screen.getByRole("button", "发送给 Agent").tap();
+    await expect(screen.getByText("Agent 会话正在等待人工输入或下一条消息。")).toBeVisible();
+    await expect(screen.getByRole("button", "提交回答")).toBeDisabled();
+    await screen.getByLabel("请补充说明").fill("请补充预算");
+    await expect(screen.getByRole("button", "提交回答")).toBeEnabled();
+    await screen.getByRole("button", "提交回答").tap();
+    await expect(screen.getByText("Agent 已完成回复。")).toBeVisible();
+    await expect(screen.getByText("已收到补充：请补充预算")).toHaveCount(2);
+    expect(requests).toHaveLength(2);
+    expect(requests[1]).toEqual({
+      continuation: { token: expect.any(String) },
+      responses: [{ kind: "text", requestId: "supplement", text: "请补充预算" }],
+    });
+  });
+
   test("临时 HTTP 失败后重试真实 API", async ({ app, browser, screen, api }) => {
     let requests = 0;
     await browser.route("**/agent/chat", async (route) => {

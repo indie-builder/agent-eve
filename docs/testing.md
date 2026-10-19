@@ -29,12 +29,12 @@ Linux 环境安装系统依赖可用 `pnpm exec e2e-web install chromium --with-
 
 ## 默认验收覆盖
 
-`e2e.config.ts` 使用两个 target：`api` 不启动浏览器，`web` 使用 Chromium。同一套 e2e runner 在根 `tests/*.e2e.ts` 发现6个流程，不重复在多个 target 执行同一流程。
+`e2e.config.ts` 使用两个 target：`api` 不启动浏览器，`web` 使用 Chromium。同一套 e2e runner 在根 `tests/*.e2e.ts` 发现7个流程，不重复在多个 target 执行同一流程。
 
-| 文件                         | 流程                                                                                  |
-| ---------------------------- | ------------------------------------------------------------------------------------- |
-| `tests/agent-console.e2e.ts` | 首页健康状态/导航/空请求；Chat回复/续聊/新会话；人工确认续接；临时HTTP失败重试，共4条 |
-| `tests/api.e2e.ts`           | Health/job intake HTTP契约；非法人工回答与runtime SSE错误，共2条                      |
+| 文件                         | 流程                                                                                                  |
+| ---------------------------- | ----------------------------------------------------------------------------------------------------- |
+| `tests/agent-console.e2e.ts` | 首页健康状态/导航/空请求；Chat回复/续聊/新会话；人工确认续接；无选项文本回答；临时HTTP失败重试，共5条 |
+| `tests/api.e2e.ts`           | Health/job intake HTTP契约；非法人工回答与runtime SSE错误，共2条                                      |
 
 Web 自动在 `localhost:13020` 启动，fixtures 按测试监听 `127.0.0.1:14020` 上的生产 Fastify app，结束后关闭；`workers: 1` 避免固定端口冲突。执行时不要同时运行该应用的另一个 Next dev server（共用 `.next/dev`），也不要占用这两个端口。Next CLI 可能更新自动生成的 `next-env.d.ts` 路径。
 
@@ -48,19 +48,19 @@ Web 自动在 `localhost:13020` 启动，fixtures 按测试监听 `127.0.0.1:140
 
 ## 精简结果与必要例外
 
-原有25个Vitest文件、89个展开用例，收敛为**13个文件、55个用例**。移除两个没有必要保留测试的package的Vitest依赖、脚本和配置；没有使用pass-with-no-tests或skip掩盖测试删除。
+原有25个Vitest文件、89个展开用例，先收敛为13个文件、55项；整仓结构复审后，仅为已复现的连接故障、取消、终态续接和资源释放增加保护，当前为**16个文件、84个用例**。移除两个没有必要保留测试的package的Vitest依赖、脚本和配置；没有使用pass-with-no-tests或skip掩盖测试删除。
 
-| 范围                                       | 处理与保留理由                                                                                                                                   |
-| ------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------ |
-| API原路由/health/job成功与continuation测试 | 迁入e2e真实HTTP和浏览器流程，删除inject重复；底层只留health故障聚合、内部故障500分类、JSON响应契约/字段泄漏、queue生命周期（含入队失败close）5项 |
-| Web agent-client/stack                     | happy path、HITL与重试由e2e验收；删静态stack断言和无调用方的submitAgentJob，保留网络/SSE error、截断流、UTF-8按字节分块3项                       |
-| UI/Logger                                  | 删除class合并和Pino名称等简单库行为测试，同时移除空runner配置                                                                                    |
-| Shared                                     | 5个文件集中为contracts.test.ts；删除合法输入回显，保留非法run输入/continuation/Redis URL等5项                                                    |
-| Agent/Eve adapter                          | 集中protocol.test.ts，保留非法token、HITL映射/敏感信息不泄漏、失败优先级、流投影、信任规则及client调用，合计19项                                 |
-| Runtime                                    | 删除latest依赖策略、数组存在性、重复URL归一化检查；保留Messages协议、危险工具禁用、sandbox/telemetry、production认证等15项                       |
-| Toolbox                                    | 4个产物文案测试替换为tools.yaml、runtime allowlist和Skill工具引用的一致性契约1项                                                                 |
-| Worker                                     | 配置校验集中到process.test.ts，保留失败/waiting语义、信号处理与只关闭一次5项                                                                     |
-| DB fixture                                 | 保留数据规模确定性和金额不变量2项，删除默认URL常量测试                                                                                           |
+| 范围                                       | 处理与保留理由                                                                                                                                            |
+| ------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| API原路由/health/job成功与continuation测试 | 迁入e2e真实HTTP和浏览器流程，删除inject重复；底层保留health故障聚合、内部故障500分类、JSON响应契约/字段泄漏、queue生命周期/有限等待与真实HTTP断开取消12项 |
+| Web agent-client/stack                     | happy path、HITL与重试由e2e验收；删静态stack断言和无调用方的submitAgentJob，保留网络/SSE error、截断流、UTF-8按字节分块、reader取消失败/不结束与解锁5项   |
+| UI/Logger                                  | 删除class合并和Pino名称等简单库行为测试，同时移除空runner配置                                                                                             |
+| Shared                                     | 按run输入契约与Node-only Redis连接分为2个文件；删除合法输入回显，保留输入拒绝、TLS和Redis协议等8项                                                        |
+| Agent/Eve adapter                          | 保留非法token、HITL映射/敏感信息不泄漏、终态/可恢复续接、流投影、信任规则、client调用与signal/timeout清理，合计34项                                       |
+| Runtime                                    | 删除latest依赖策略、数组存在性、重复URL归一化检查；保留Messages协议、危险工具禁用、sandbox/telemetry、production认证等15项                                |
+| Toolbox                                    | 4个产物文案测试替换为tools.yaml、runtime allowlist和Skill工具引用的一致性契约1项                                                                          |
+| Worker                                     | 配置校验集中到consumer.test.ts，保留失败/waiting语义、信号处理、只关闭一次及初始化重连/关闭及blocking握手时活跃任务排空7项                                |
+| DB fixture                                 | 保留数据规模确定性和金额不变量2项，删除默认URL常量测试                                                                                                    |
 
 选择是否写底层测试的标准是：该保护无法通过少量稳定用户/API流程有效验证。不要把每个合法schema、getter或简单委托都变成单测，也不为减少数字把无关场景硬合成一个长测试。
 

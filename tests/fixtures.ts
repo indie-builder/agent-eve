@@ -31,16 +31,25 @@ export const test = base.extend<{ api: string }>({
             const token = request.continuation?.token ?? crypto.randomUUID();
             sessions.add(token);
             const confirmation = request.prompt === "生成报表";
+            const textInput = request.prompt === "补充说明";
             const confirmed = request.responses?.[0];
             if (
-              confirmed &&
-              (confirmed.kind !== "selected-option" ||
-                confirmed.requestId !== "confirm-report" ||
-                confirmed.optionId !== "yes")
+              confirmed?.kind === "selected-option" &&
+              (confirmed.requestId !== "confirm-report" || confirmed.optionId !== "yes")
             ) {
               throw new Error("Invalid confirmation response");
             }
-            const output = confirmed ? "报表已生成。" : `**收到：${request.prompt}**`;
+            if (
+              confirmed?.kind === "text" &&
+              (confirmed.requestId !== "supplement" || !confirmed.text.trim())
+            ) {
+              throw new Error("Invalid text response");
+            }
+            const output = confirmed
+              ? confirmed.kind === "text"
+                ? `已收到补充：${confirmed.text}`
+                : "报表已生成。"
+              : `**收到：${request.prompt}**`;
             const event: AgentRunEvent = confirmation
               ? {
                   kind: "input-requested",
@@ -54,12 +63,24 @@ export const test = base.extend<{ api: string }>({
                     },
                   ],
                 }
-              : { kind: "done", result: output };
+              : textInput
+                ? {
+                    kind: "input-requested",
+                    requests: [
+                      {
+                        requestId: "supplement",
+                        prompt: "请补充说明",
+                        tool: "report",
+                        display: "text",
+                      },
+                    ],
+                  }
+                : { kind: "done", result: output };
             callbacks?.onEvent?.(event);
             return {
-              status: confirmation ? "waiting" : "completed",
+              status: confirmation || textInput ? "waiting" : "completed",
               events: [event],
-              output: confirmation ? "" : output,
+              output: confirmation || textInput ? "" : output,
               sessionId: token,
               continuation: { token },
             };

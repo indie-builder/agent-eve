@@ -6,7 +6,7 @@ COPY . .
 RUN pnpm install --frozen-lockfile
 
 FROM build-base AS api-build
-RUN pnpm db:generate && pnpm exec turbo build --filter=@agent-template/api
+RUN pnpm exec turbo build --filter=@agent-template/api
 RUN pnpm --filter @agent-template/api deploy --prod /deploy/api
 
 FROM build-base AS worker-build
@@ -45,6 +45,8 @@ FROM node:26.12.0-alpine AS runtime
 ENV NODE_ENV=production HOST=0.0.0.0 PORT=13010
 WORKDIR /app
 COPY --from=runtime-build --chown=node:node /app/apps/runtime/.output ./.output
+COPY --from=runtime-build --chown=node:node /app/apps/runtime/.eve/sandbox-cache/just-bash/templates ./.eve/sandbox-cache/just-bash/templates
+RUN chown -R node:node .eve
 USER node
 EXPOSE 13010
 CMD ["node", ".output/server/index.mjs"]

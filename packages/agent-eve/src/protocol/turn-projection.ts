@@ -5,16 +5,21 @@ export type EveStreamProjectionState = {
   messageText: string;
 };
 
-export type EveTurnProjection =
+export type EveTurnProjection = (
   | { status: "completed" | "waiting"; output: string }
-  | { status: "failed"; reason: string };
+  | { status: "failed"; reason: string }
+) & { resumable: boolean };
 
 export function projectEveTurn(
   events: readonly MessageStreamEvent[],
 ): EveTurnProjection | undefined {
-  const failed = findLastByType(events, "session.failed") ?? findLastByType(events, "turn.failed");
+  const turnFailure = findLastByType(events, "turn.failed");
+  const sessionFailure = findLastByType(events, "session.failed");
+  const resumable =
+    !sessionFailure && !findLastByType(events, "session.completed") && !turnFailure?.data.terminal;
+  const failed = sessionFailure ?? turnFailure;
   if (failed) {
-    return { status: "failed", reason: failed.data.message };
+    return { status: "failed", reason: failed.data.message, resumable };
   }
 
   const boundary = findLastBoundary(events);
@@ -25,6 +30,7 @@ export function projectEveTurn(
   return {
     status: boundary.type === "session.completed" ? "completed" : "waiting",
     output: findEveOutput(events),
+    resumable,
   };
 }
 

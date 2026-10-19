@@ -11,8 +11,6 @@ export function toEveInputResponses(responses: readonly AgentInputResponse[]): I
         };
       case "text":
         return { requestId: response.requestId, text: response.text };
-      case "selected-options":
-        throw new Error("Eve Agent input requests do not support multi-select");
     }
   });
 }

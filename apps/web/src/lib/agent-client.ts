@@ -59,31 +59,39 @@ export async function streamAgentChat({
   let buffer = "";
   let result: AgentRunResult | undefined;
 
-  for (;;) {
-    const { done, value } = await reader.read();
-    buffer += decoder.decode(value, { stream: !done });
-    buffer = readSseMessages(buffer, (message) => {
-      const event = parseSseMessage(message);
+  try {
+    for (;;) {
+      const { done, value } = await reader.read();
+      buffer += decoder.decode(value, { stream: !done });
+      buffer = readSseMessages(buffer, (message) => {
+        const event = parseSseMessage(message);
 
-      if (event.type === "agent-event") {
-        onEvent?.(event.data);
-      } else if (event.type === "result") {
-        result = event.data;
-      } else {
-        throw new Error(event.data.message);
+        if (event.type === "agent-event") {
+          onEvent?.(event.data);
+        } else if (event.type === "result") {
+          result = event.data;
+        } else {
+          throw new Error(event.data.message);
+        }
+      });
+
+      if (done) {
+        break;
       }
-    });
-
-    if (done) {
-      break;
     }
-  }
 
-  if (!result) {
-    throw new Error("Agent chat stream ended without a result");
-  }
+    if (!result) {
+      throw new Error("Agent chat stream ended without a result");
+    }
 
-  return result;
+    return result;
+  } catch (error) {
+    // tee/clone的取消可能等待其他消费者，不能阻塞原始错误和解锁。
+    void reader.cancel().catch(() => {});
+    throw error;
+  } finally {
+    reader.releaseLock();
+  }
 }
 
 function readSseMessages(buffer: string, onMessage: (message: string) => void) {

@@ -45,18 +45,6 @@ describe("Eve input response adapter", () => {
       { requestId: "request-2", text: "补充说明" },
     ]);
   });
-
-  it("fails explicitly when the runtime cannot represent multi-select", () => {
-    expect(() =>
-      toEveInputResponses([
-        {
-          kind: "selected-options",
-          requestId: "request-1",
-          optionIds: ["a", "b"],
-        },
-      ]),
-    ).toThrow("do not support multi-select");
-  });
 });
 
 describe("Eve turn projection", () => {
@@ -90,6 +78,7 @@ describe("Eve turn projection", () => {
     expect(projectEveTurn(events)).toEqual({
       status: "waiting",
       output: '{"answer":42}',
+      resumable: true,
     });
   });
 
@@ -101,7 +90,7 @@ describe("Eve turn projection", () => {
       }),
     ];
 
-    expect(projectEveTurn(events)).toEqual({ status: "waiting", output: "" });
+    expect(projectEveTurn(events)).toEqual({ status: "waiting", output: "", resumable: true });
   });
 
   it("gives a terminal session failure precedence over prior boundaries", () => {
@@ -123,6 +112,7 @@ describe("Eve turn projection", () => {
     expect(projectEveTurn(events)).toEqual({
       status: "failed",
       reason: "failed",
+      resumable: false,
     });
   });
 
@@ -157,6 +147,7 @@ describe("Eve turn projection", () => {
     expect(projectEveTurn(events)).toEqual({
       status: "failed",
       reason: "Provider request failed",
+      resumable: true,
     });
   });
 

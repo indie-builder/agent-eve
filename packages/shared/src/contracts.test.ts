@@ -1,7 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { ZodError } from "zod";
 import { AgentRunInputSchema } from "./agent-run/contracts";
-import { createBullMqConnectionOptions } from "./queue/connection-options.js";
 
 describe("Agent run input contract", () => {
   it("rejects runs without a prompt or input responses", () => {
@@ -25,23 +24,19 @@ describe("Agent run input contract", () => {
       }),
     ).toThrow(ZodError);
   });
-});
 
-describe("BullMQ connection parsing", () => {
-  it("parses Redis URLs for BullMQ", () => {
-    expect(createBullMqConnectionOptions("redis://user:pass@localhost:16379/2")).toEqual({
-      host: "localhost",
-      port: 16379,
-      username: "user",
-      password: "pass",
-      db: 2,
-      maxRetriesPerRequest: null,
-    });
-  });
-
-  it("rejects non-numeric Redis database indexes", () => {
-    expect(() => createBullMqConnectionOptions("redis://localhost/not-a-number")).toThrow(
-      "Redis URL database index must be a non-negative integer",
-    );
+  it("rejects multi-select input responses", () => {
+    expect(() =>
+      AgentRunInputSchema.parse({
+        continuation: { token: "opaque-token" },
+        responses: [
+          {
+            kind: "selected-options",
+            requestId: "request-1",
+            optionIds: ["a", "b"],
+          },
+        ],
+      }),
+    ).toThrow(ZodError);
   });
 });

@@ -1,5 +1,6 @@
-import { describe, expect, it } from "vitest";
-import type { MessageStreamEvent } from "eve/client";
+import { getEventListeners } from "node:events";
+import { afterEach, describe, expect, it, vi } from "vitest";
+import { ClientError, type MessageStreamEvent } from "eve/client";
 import { getEveAgentRuntimeStateFromEnv, parseEveAgentConfig, runEveAgent } from "./run-agent.js";
 import { encodeEveContinuation } from "../protocol/continuation.js";
 
@@ -22,6 +23,263 @@ function responseOf(
     },
   };
 }
+
+type EveClientFactory = NonNullable<NonNullable<Parameters<typeof runEveAgent>[2]>["createClient"]>;
+
+function deferred<T>() {
+  let resolve!: (value: T | PromiseLike<T>) => void;
+  let reject!: (reason?: unknown) => void;
+  const promise = new Promise<T>((res, rej) => {
+    resolve = res;
+    reject = rej;
+  });
+  return { promise, resolve, reject };
+}
+
+const sessionState = { sessionId: "eve-session-1", streamIndex: 6 };
+const config = parseEveAgentConfig({
+  EVE_AGENT_HOST: "http://127.0.0.1:13010",
+  EVE_AGENT_REQUEST_TIMEOUT_MS: 100,
+});
+
+function clientWithTurn(
+  turn: (signal?: AbortSignal) => Promise<ReturnType<typeof responseOf>>,
+): EveClientFactory {
+  return () => {
+    const session = {
+      state: sessionState,
+      send: async (_message: string, options?: { signal?: AbortSignal }) => turn(options?.signal),
+      respond: async (_responses: unknown, options?: { signal?: AbortSignal }) =>
+        turn(options?.signal),
+    };
+    return {
+      sessions: {
+        attach: () => session,
+        create: async (options) => ({ session, response: await turn(options.signal) }),
+      },
+    };
+  };
+}
+
+afterEach(() => {
+  vi.useRealTimers();
+});
+
+describe("Eve Agent lifecycle and cancellation", () => {
+  it.each(["session_not_active", "temporarily_unavailable"])(
+    "续接POST被拒绝时仅清除不可恢复的 %s token",
+    async (code) => {
+      const result = await runEveAgent(
+        { prompt: "继续", continuation: encodeEveContinuation(sessionState) },
+        config,
+        {
+          createClient: clientWithTurn(async () => {
+            throw new ClientError(
+              code === "session_not_active" ? 409 : 503,
+              JSON.stringify({ code, error: "Request rejected" }),
+            );
+          }),
+        },
+      );
+      expect(result.status).toBe("failed");
+      expect("continuation" in result).toBe(code !== "session_not_active");
+    },
+  );
+
+  it.each([
+    {
+      name: "completed session",
+      event: streamEvent({ type: "session.completed" }),
+      resumable: false,
+    },
+    {
+      name: "failed session",
+      event: streamEvent({
+        type: "session.failed",
+        data: { code: "FAILED", message: "Session failed", sessionId: sessionState.sessionId },
+      }),
+      resumable: false,
+    },
+    {
+      name: "waiting session",
+      event: streamEvent({
+        type: "session.waiting",
+        data: { continuationToken: "", wait: "next-user-message" },
+      }),
+      resumable: true,
+    },
+    {
+      name: "human input pause",
+      event: streamEvent({
+        type: "turn.waiting",
+        data: { on: "input", sequence: 1, turnId: "turn-1" },
+      }),
+      resumable: true,
+    },
+    ...[false, true].map((terminal) => ({
+      name: `${terminal ? "terminal" : "recoverable"} turn failure`,
+      event: streamEvent({
+        type: "turn.failed",
+        data: { code: "FAILED", message: "Turn failed", terminal, sequence: 1, turnId: "turn-1" },
+      }),
+      resumable: !terminal,
+    })),
+  ])("only exposes a usable continuation for $name", async ({ event, resumable }) => {
+    const result = await runEveAgent({ prompt: "Run" }, config, {
+      createClient: clientWithTurn(async () => responseOf(sessionState.sessionId, [event])),
+    });
+    expect("continuation" in result).toBe(resumable);
+    expect("continuation" in result ? result.continuation : undefined).toEqual(
+      resumable ? encodeEveContinuation(sessionState) : undefined,
+    );
+  });
+
+  it.each(["create", "send", "respond"] as const)(
+    "propagates cancellation through %s and releases the iterator, listener and timeout",
+    async (method) => {
+      vi.useFakeTimers();
+      const controller = new AbortController();
+      const started = deferred<void>();
+      let transportSignal: AbortSignal | undefined;
+      let released = false;
+      const resultPromise = runEveAgent(
+        method === "create"
+          ? { prompt: "Run" }
+          : {
+              continuation: encodeEveContinuation(sessionState),
+              ...(method === "send"
+                ? { prompt: "Continue" }
+                : { responses: [{ kind: "text", requestId: "request-1", text: "Yes" }] }),
+            },
+        config,
+        {
+          signal: controller.signal,
+          createClient: clientWithTurn(async (signal) => {
+            transportSignal = signal;
+            return {
+              sessionId: sessionState.sessionId,
+              async *[Symbol.asyncIterator]() {
+                const aborted = () => stop.reject(new Error("private transport error"));
+                const stop = deferred<never>();
+                signal!.addEventListener("abort", aborted, { once: true });
+                started.resolve();
+                try {
+                  await stop.promise;
+                  yield streamEvent({ type: "session.completed" });
+                } finally {
+                  signal!.removeEventListener("abort", aborted);
+                  released = true;
+                }
+              },
+            };
+          }),
+        },
+      );
+      await started.promise;
+      expect(transportSignal?.aborted).toBe(false);
+      controller.abort(new Error("secret cancellation reason"));
+      const result = await resultPromise;
+      expect(result).toMatchObject({ status: "failed", reason: "Eve Agent request cancelled" });
+      expect(result).toHaveProperty("continuation", encodeEveContinuation(sessionState));
+      expect(transportSignal?.aborted).toBe(true);
+      expect(released).toBe(true);
+      expect(getEventListeners(controller.signal, "abort")).toHaveLength(0);
+      expect(getEventListeners(transportSignal!, "abort")).toHaveLength(0);
+      expect(vi.getTimerCount()).toBe(0);
+      expect(JSON.stringify(result)).not.toContain("secret");
+      expect(JSON.stringify(result)).not.toContain("private");
+    },
+  );
+
+  it.each(["POST", "stream"])("bounds the %s wait with a distinct timeout", async (stage) => {
+    vi.useFakeTimers();
+    const controller = new AbortController();
+    const started = deferred<void>();
+    let transportSignal: AbortSignal | undefined;
+    const waitForAbort = (signal: AbortSignal) => {
+      const stop = deferred<never>();
+      signal.addEventListener("abort", () => stop.reject(new Error("private timeout reason")), {
+        once: true,
+      });
+      started.resolve();
+      return stop.promise;
+    };
+    const pending = runEveAgent({ prompt: "Run" }, config, {
+      signal: controller.signal,
+      createClient: clientWithTurn(async (signal) => {
+        transportSignal = signal;
+        if (stage === "POST") return waitForAbort(signal!);
+        return {
+          sessionId: sessionState.sessionId,
+          async *[Symbol.asyncIterator]() {
+            await waitForAbort(signal!);
+            yield streamEvent({ type: "session.completed" });
+          },
+        };
+      }),
+    });
+    await started.promise;
+    await vi.advanceTimersByTimeAsync(config.requestTimeoutMs);
+    expect(await pending).toMatchObject({
+      status: "failed",
+      reason: "Eve Agent request timed out",
+    });
+    expect(transportSignal?.aborted).toBe(true);
+    expect(controller.signal.aborted).toBe(false);
+    expect(getEventListeners(controller.signal, "abort")).toHaveLength(0);
+    expect(vi.getTimerCount()).toBe(0);
+  });
+
+  it("does no client work for an already aborted signal and hides its reason", async () => {
+    vi.useFakeTimers();
+    const controller = new AbortController();
+    controller.abort("secret");
+    const createClient = vi.fn<EveClientFactory>();
+    const result = await runEveAgent({ prompt: "Run" }, config, {
+      signal: controller.signal,
+      createClient,
+    });
+    expect(result).toMatchObject({ status: "failed", reason: "Eve Agent request cancelled" });
+    expect(createClient).not.toHaveBeenCalled();
+    expect(getEventListeners(controller.signal, "abort")).toHaveLength(0);
+    expect(vi.getTimerCount()).toBe(0);
+  });
+
+  it("detects cancellation when an aborted transport ends silently", async () => {
+    const controller = new AbortController();
+    const result = await runEveAgent({ prompt: "Run" }, config, {
+      signal: controller.signal,
+      createClient: clientWithTurn(async () => ({
+        sessionId: sessionState.sessionId,
+        async *[Symbol.asyncIterator]() {
+          yield streamEvent({ type: "session.completed" });
+          controller.abort("secret");
+        },
+      })),
+    });
+    expect(result).toMatchObject({ status: "failed", reason: "Eve Agent request cancelled" });
+    expect(result).not.toHaveProperty("continuation");
+  });
+
+  it("cleans up after success without later aborting the completed transport", async () => {
+    vi.useFakeTimers();
+    const controller = new AbortController();
+    let transportSignal: AbortSignal | undefined;
+    const result = await runEveAgent({ prompt: "Run" }, config, {
+      signal: controller.signal,
+      createClient: clientWithTurn(async (signal) => {
+        transportSignal = signal;
+        return responseOf(sessionState.sessionId, [streamEvent({ type: "session.completed" })]);
+      }),
+    });
+    expect(result.status).toBe("completed");
+    controller.abort("secret");
+    await vi.advanceTimersByTimeAsync(config.requestTimeoutMs);
+    expect(transportSignal?.aborted).toBe(false);
+    expect(getEventListeners(controller.signal, "abort")).toHaveLength(0);
+    expect(vi.getTimerCount()).toBe(0);
+  });
+});
 
 describe("Eve Agent runtime", () => {
   it("requires service authentication for non-loopback Eve hosts", async () => {
@@ -53,10 +311,6 @@ describe("Eve Agent runtime", () => {
 
   it("runs through the Eve client when configured", async () => {
     const events: unknown[] = [];
-    const continuation = encodeEveContinuation({
-      sessionId: "eve-session-1",
-      streamIndex: 6,
-    });
     const streamed = [
       streamEvent({
         data: {
@@ -155,7 +409,6 @@ describe("Eve Agent runtime", () => {
       ],
       output: "Done",
       sessionId: "eve-session-1",
-      continuation,
     });
     expect(events).toEqual([
       {
