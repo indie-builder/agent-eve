@@ -7,7 +7,19 @@
     },
     "build": {
       "dependsOn": ["^build"],
-      "outputs": [".next/**", "dist/**", ".output/**", ".eve/compile/**", ".eve/discovery/**"],
+      "inputs": [
+        "$TURBO_DEFAULT$",
+        "$TURBO_ROOT$/tsconfig.base.json",
+        "$TURBO_ROOT$/tsconfig.build.json"
+      ],
+      "outputs": [
+        ".next/**",
+        "dist/**",
+        ".output/**",
+        ".eve/compile/**",
+        ".eve/discovery/**",
+        ".eve/sandbox-cache/just-bash/templates/**"
+      ],
       "env": [
         "NEXT_PUBLIC_API_BASE_URL",
         "ANTHROPIC_BASE_URL",
@@ -34,14 +46,46 @@
     },
     "typecheck": {
       "dependsOn": ["^typecheck"],
+      "inputs": [
+        "$TURBO_DEFAULT$",
+        "$TURBO_ROOT$/tsconfig.base.json",
+        "$TURBO_ROOT$/tsconfig.build.json"
+      ],
+      "outputs": []
+    },
+    "@agent-template/db#build": {
+      "dependsOn": ["^build", "db:generate"],
+      "inputs": [
+        "$TURBO_DEFAULT$",
+        "$TURBO_ROOT$/tsconfig.base.json",
+        "$TURBO_ROOT$/tsconfig.build.json"
+      ],
+      "outputs": ["dist/**"]
+    },
+    "@agent-template/db#typecheck": {
+      "dependsOn": ["^typecheck", "db:generate"],
+      "inputs": [
+        "$TURBO_DEFAULT$",
+        "$TURBO_ROOT$/tsconfig.base.json",
+        "$TURBO_ROOT$/tsconfig.build.json"
+      ],
+      "outputs": []
+    },
+    "@agent-template/toolbox#test": {
+      "dependsOn": ["^test"],
+      "inputs": [
+        "$TURBO_DEFAULT$",
+        "$TURBO_ROOT$/apps/runtime/agent/connections/toolbox.ts",
+        "$TURBO_ROOT$/apps/runtime/agent/skills/**"
+      ],
       "outputs": []
     },
     "test": {
       "dependsOn": ["^test"],
       "outputs": []
     },
-    "db:generate": {
-      "cache": false
+    "@agent-template/db#db:generate": {
+      "outputs": ["generated/**"]
     },
     "db:migrate": {
       "cache": false
