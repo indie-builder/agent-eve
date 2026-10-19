@@ -42,14 +42,25 @@ export type CreateAgentWorkerProcessOptions = {
 
 function createBullMqWorker(options: CreateWorkerOptions): AgentWorker {
   const worker = new Worker<AgentJobPayload>(agentQueueName, options.processJob, {
-    connection: createBullMqConnectionOptions(options.env.REDIS_URL),
+    connection: {
+      ...createBullMqConnectionOptions(options.env.REDIS_URL),
+      maxRetriesPerRequest: null,
+    },
     concurrency: options.concurrency,
   });
 
   worker.on("completed", options.onCompleted);
   worker.on("failed", options.onFailed);
+  worker.on("error", (error) => {
+    options.logger.error({ err: error }, "agent worker connection failed");
+  });
 
-  return worker;
+  return {
+    close() {
+      // Only main connection initialization rules out active jobs; blocking may still be handshaking.
+      return worker.close(worker.getBackend().connection.status === "initializing");
+    },
+  };
 }
 
 function createAgentJobError(result: AgentRunResult): Error {

@@ -4,16 +4,24 @@ export type BullMqConnectionOptions = {
   username?: string;
   password?: string;
   db?: number;
-  maxRetriesPerRequest: null;
+  tls?: Record<string, unknown>;
 };
 
 export function createBullMqConnectionOptions(redisUrl: string): BullMqConnectionOptions {
   const parsed = new URL(redisUrl);
+
+  if (parsed.protocol !== "redis:" && parsed.protocol !== "rediss:") {
+    throw new Error(`Unsupported Redis URL protocol "${parsed.protocol}"; use redis: or rediss:`);
+  }
+
   const options: BullMqConnectionOptions = {
     host: parsed.hostname,
     port: parsed.port ? Number(parsed.port) : 6379,
-    maxRetriesPerRequest: null,
   };
+
+  if (parsed.protocol === "rediss:") {
+    options.tls = {};
+  }
 
   if (parsed.username) {
     options.username = decodeURIComponent(parsed.username);
