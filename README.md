@@ -64,7 +64,7 @@ pnpm exec e2e-web install chromium
 pnpm test
 ```
 
-`pnpm test` 是统一入口，执行精简底层契约检查和 TesterArmy e2e Web/API 验收。e2e 自动启动独立 Next.js（13020）和生产 Fastify app（14020），成功路径走真实 HTTP/SSE，仅在外部 runtime/queue seam 注入确定性测试 adapter；无需模型密钥、数据库或 Docker。核心验收共6条，报告与失败 trace 写入被忽略的 `.e2e/`。
+`pnpm test` 是统一入口，执行精简底层契约检查和 TesterArmy e2e Web/API 验收。e2e 自动启动独立 Next.js（13020）和生产 Fastify app（14020），成功路径走真实 HTTP/SSE，仅在外部 runtime/queue seam 注入确定性测试 adapter；无需模型密钥、数据库或 Docker。核心验收共7条，报告与失败 trace 写入被忽略的 `.e2e/`。
 
 只跑验收使用 `pnpm test:e2e`。对已启动的真实 Web/API/Eve 环境设置 `E2E_LIVE_WEB_URL` 和 `E2E_LIVE_API_URL` 后运行 `pnpm test:live`，缺少环境会失败；该入口调用真实模型，不纳入默认回归。测试规则见根目录 `AGENTS.md`。
 

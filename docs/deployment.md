@@ -23,7 +23,9 @@
 - Web：Next standalone，入口 `apps/web/server.js`。
 - API：独立生产依赖与完整 `dist/`，入口 `dist/server.js`。
 - Worker：独立生产依赖与完整 `dist/`，入口 `dist/worker.js`。
-- Runtime：Eve/Nitro `.output/`，入口 `.output/server/index.mjs`。
+- Runtime：Eve/Nitro `.output/` 与 `.eve/sandbox-cache/just-bash/templates/`，入口 `.output/server/index.mjs`。
+
+Runtime 的工作目录固定为 `/app`，两份产物分别放在 `/app/.output/` 和 `/app/.eve/sandbox-cache/just-bash/templates/`。Eve 0.80.1 的 build 预先生成 just-bash 文件系统模板，生产 provider 根据 bundle 内的 `templateKey` 从当前工作目录的 `.eve/sandbox-cache/` 打开模板；缺失时会失败，不会自动重建。Skill 内容包含在模板中，通过 sandbox 的 `$HOME/.agents/skills/` 读取，即使 shell/文件 Tool 默认关闭也必须部署模板。Turbo build outputs 同时缓存 `.output/` 和模板目录；不要部署开发 session 目录。镜像将 `.eve/` 归属设为 `node` 用户，确保 provider 能在模板旁创建运行时 session 目录。
 
 构建 Web 时传入 `NEXT_PUBLIC_API_BASE_URL`，它会编译进浏览器代码并参与 Turbo 缓存；运行时修改同名变量不会重写浏览器产物。API 的 `CORS_ORIGIN` 应与公开 Web origin 一致。
 
@@ -53,10 +55,16 @@ API、Worker 和 runtime 可以作为独立部署单元配置副本数。Runtime
 
 Worker 并发由 `WORKER_CONCURRENCY` 正整数控制。Agent 返回 failed/skipped 时 BullMQ job 失败，waiting 表示等待用户交互。默认不自动重试新建会话，避免在网络错误后重复执行模型任务。BullMQ 仍是 at-least-once：Worker 崩溃可能触发重投；有外部写入 Tool 时需在业务 Tool 实现幂等。
 
-API 和 Worker 在 SIGTERM/SIGINT 时执行关闭流程。Compose 配置 init 和 150 秒退出宽限期；实际平台应让宽限期覆盖请求和 job 收尾。
+API 和 Worker 在 SIGTERM/SIGINT 时执行关闭流程。Compose 配置 init 和 150 秒退出宽限期；实际平台应让宽限期覆盖请求和 job 收尾。Worker仅在主连接尚未初始化、无法开始任务时force close；blocking连接初始化不能证明没有活跃任务。BullMQ在主连接ready、blocking握手永久无响应时仍可能阻塞graceful close，需由退出宽限期兜底并后续单独治理，不能以force关闭活跃任务掩盖此边界。
 
 ## 本地验证与部署验收
 
-默认本地验证：`pnpm db:generate`、`pnpm lint`、`pnpm typecheck`、`pnpm test`、`pnpm build`、`pnpm --filter @agent-template/runtime run info` 和 `eval:list`。
+默认本地验证：`pnpm lint`、`pnpm typecheck`、`pnpm test`、`pnpm build`、`pnpm --filter @agent-template/runtime run info` 和 `eval:list`。`pnpm typecheck` 与 `pnpm build` 通过 Turbo 任务图先执行 DB 的 `db:generate`，或从缓存恢复 `generated/`，不要求预先手工生成，也不访问数据库。`generated/**` 只归 `@agent-template/db#db:generate` 任务所有，DB build 只缓存 `dist/**`；schema、Prisma 配置和锁定依赖参与生成任务的缓存键。Docker API build 复用同一任务图。
+
+只检查 DB 时使用 `pnpm exec turbo run typecheck --filter=@agent-template/db`（build 同理）。`pnpm --filter @agent-template/db typecheck` 直接运行 TypeScript，绕过 Turbo 前置任务；使用该底层入口前需显式执行 `pnpm db:generate`。Web typecheck 先运行 `next typegen`，再用 `tsconfig.typecheck.json` 排除旧 `.next/dev/**` validator，因此 clean checkout 无需预先执行 Next build，路由改名也不受上一次 dev 类型污染；主tsconfig保留Next开发模式的类型发现。
+
+Turbo build/typecheck 的 inputs 包含根 `tsconfig.base.json`、`tsconfig.build.json`；Toolbox test 的 inputs 还包含 runtime MCP allowlist 和 `agent/skills/**`，这些文件变更会使相关缓存失效。Toolbox test 不依赖 runtime test，避免反向耦合任务图。
+
+模板部署可在本地隔离目录验证：复制 `.output/` 与模板目录，切换工作目录后，使用已安装 Eve 的 just-bash provider `start(context, undefined, artifact)` 打开 bundle 记录的 artifact，并通过 `sandbox.run()` 读取 `$HOME/.agents/skills/<skill>/SKILL.md`、对比 authored Skill 内容；只检查文件存在不足以证明模板可用。该检查无需 Docker、模型或 Workflow 数据库，只覆盖本地 provider 与部署产物布局。Eve bundled 文档见 `apps/runtime/node_modules/eve/docs/sandbox/index.mdx`、`sandbox/just-bash.mdx`；0.80.1 的模板路径实现位于该 package 的 `dist/src/execution/sandbox/bindings/just-bash.js` 和 `local-provider-utils.js`。
 
 实际容器部署还应验收目标平台的镜像构建、服务就绪、真实 Agent turn、SSE/HITL 续接、runtime 重启恢复；共享 world 多副本另测跨副本恢复。数据库迁移作为独立部署步骤执行，不在每个 API/Worker 副本启动时竞争执行。

@@ -2,6 +2,17 @@
 
 来源：`improve-codebase-architecture` 评审，按 `codebase-design` 的 module / interface / depth / seam / adapter / leverage / locality 词汇维护。
 
+## 当前整仓迭代（2026-10-19）
+
+用户显式调用 `codebase-design` + `/loop`，基线 `fad3711`；实际发现、修复和验收状态见 `.scratch/codebase-design-loop/PRD.md`。下列历史条目保留当时背景，不代表当前Eve单栈仍有runtime selector或旧路径。
+
+- Strong：HITL文本输入与无实现多选interface收敛。
+- Strong：Redis TLS和producer/consumer重试策略归属。
+- Strong：SSE reader、下游断开与Eve续接生命周期。
+- Strong：Runtime sandbox部署产物、Turbo跨目录输入、Prisma生成前置。
+
+本轮实现与完整回归完成，最终独立复审无新增阻断，Loop已停止。单独保留BullMQ blocking握手永久挂起的graceful close治理项；不可扩大force条件中断活跃任务。详情和验证边界见本轮PRD。
+
 ## 候选
 
 | 状态 | 议题 | 强度 | 下一步 |
