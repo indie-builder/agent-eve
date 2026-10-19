@@ -14,7 +14,7 @@
     "@agent-template/agent": "workspace:*",
     "@agent-template/logger": "workspace:*",
     "@agent-template/shared": "workspace:*",
-    "bullmq": ">=6.3.16",
+    "bullmq": ">=6.3.17",
     "ioredis": ">=6.0.0",
     "pino": ">=10.4.0",
     "zod": ">=4.6.7"

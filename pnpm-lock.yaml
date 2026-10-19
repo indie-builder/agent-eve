@@ -237,8 +237,8 @@ importers:
         specifier: '>=7.10.1'
         version: 7.10.1(prisma@7.10.1(@types/node@26.6.5)(@types/react-dom@19.3.0(@types/react@19.3.0))(@types/react@19.3.0)(react-dom@19.3.1(react@19.3.1))(react@19.3.1)(typescript@7.0.2))(typescript@7.0.2)
       bullmq:
-        specifier: '>=6.3.16'
-        version: 6.3.16(ioredis@6.0.0(supports-color@7.2.0))(pg@8.23.1)
+        specifier: '>=6.3.17'
+        version: 6.3.17(ioredis@6.0.0(supports-color@7.2.0))(pg@8.23.1)
       fastify:
         specifier: '>=5.12.7'
         version: 5.12.7
@@ -275,7 +275,7 @@ importers:
         version: 7.0.143(zod@4.6.7)
       eve:
         specifier: latest
-        version: 0.80.1(ai@7.0.143(zod@4.6.7))(just-bash@3.6.0(supports-color@7.2.0))
+        version: 0.81.0(ai@7.0.143(zod@4.6.7))(just-bash@3.6.0(supports-color@7.2.0))
       just-bash:
         specifier: '>=3.6.0'
         version: 3.6.0(supports-color@7.2.0)
@@ -348,8 +348,8 @@ importers:
         specifier: workspace:*
         version: link:../../packages/shared
       bullmq:
-        specifier: '>=6.3.16'
-        version: 6.3.16(ioredis@6.0.0(supports-color@7.2.0))(pg@8.23.1)
+        specifier: '>=6.3.17'
+        version: 6.3.17(ioredis@6.0.0(supports-color@7.2.0))(pg@8.23.1)
       ioredis:
         specifier: '>=6.0.0'
         version: 6.0.0(supports-color@7.2.0)
@@ -387,7 +387,7 @@ importers:
         version: link:../shared
       eve:
         specifier: latest
-        version: 0.80.1(ai@7.0.143(zod@4.6.7))(just-bash@3.6.0(supports-color@7.2.0))
+        version: 0.81.0(ai@7.0.143(zod@4.6.7))(just-bash@3.6.0(supports-color@7.2.0))
       zod:
         specifier: '>=4.6.7'
         version: 4.6.7
@@ -2429,8 +2429,8 @@ packages:
   buffer@5.7.1:
     resolution: {integrity: sha512-EHcyIPBQ4BSGlvjB16k5KgAJ27CIsHY/2JBmCRReo48y9rQ3MaUzWX3KVlBa4U7MyX02HdVj0K7C3WaB3ju7FQ==}
 
-  bullmq@6.3.16:
-    resolution: {integrity: sha512-savxnrdqckobnm31XWwCKTAswkxrNIqLD/PsdwgYaDpst0UdULu/QjOtPdn86KNrBq8WoHKhJvbgGK13dgPJ8w==}
+  bullmq@6.3.17:
+    resolution: {integrity: sha512-1OFJqrW7h9OMfnYPgH/1O9J7g+6bMKJpBzlhP9AvhfLTHdd/kXbFsZueDiPlbJoux7M9zzK9WVL91wC889MYDw==}
     engines: {node: '>=14.17.0'}
     peerDependencies:
       bullmq-otel: '>=2.0.0'
@@ -2886,8 +2886,8 @@ packages:
   estree-walker@3.0.3:
     resolution: {integrity: sha512-7RUKfXgSMMkzt6ZuXmqapOurLGPPfgj6l9uRZ7lRGolvk0y2yocc35LdcxKC5PQZdn2DMqioAQ2NoWcrTKmm6g==}
 
-  eve@0.80.1:
-    resolution: {integrity: sha512-s890vy5W9Cqovq2ceIb+oe7zLVclPPidceso9ln17ljNwRLGE+92uGz1K7tayvhcXVK/z5bjx0szLNeLR2ItPA==}
+  eve@0.81.0:
+    resolution: {integrity: sha512-Zz15bJ+r0BWfGEFymdFRwX+LypD383MzF63nGoeedePWcQ8p+yUMuYZJZxHk8tfQnI6AhK7yCyMDLjHbNFp2DA==}
     engines: {node: '>=24'}
     hasBin: true
     peerDependencies:
@@ -6061,7 +6061,7 @@ snapshots:
       ieee754: 1.2.1
     optional: true
 
-  bullmq@6.3.16(ioredis@6.0.0(supports-color@7.2.0))(pg@8.23.1):
+  bullmq@6.3.17(ioredis@6.0.0(supports-color@7.2.0))(pg@8.23.1):
     dependencies:
       cron-parser: 5.10.2
       msgpackr: 2.1.0
@@ -6402,7 +6402,7 @@ snapshots:
     dependencies:
       '@types/estree': 1.0.9
 
-  eve@0.80.1(ai@7.0.143(zod@4.6.7))(just-bash@3.6.0(supports-color@7.2.0)):
+  eve@0.81.0(ai@7.0.143(zod@4.6.7))(just-bash@3.6.0(supports-color@7.2.0)):
     dependencies:
       ai: 7.0.143(zod@4.6.7)
       nitro: 3.0.260903-beta

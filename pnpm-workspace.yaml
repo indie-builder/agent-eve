@@ -13,6 +13,11 @@ allowBuilds:
   sharp: true
   workerd: true
 
+# shortcut: 刚发布的最新稳定版尚未过 release-age 冷却，冷却后可移除对应条目。
+minimumReleaseAgeExclude:
+  - bullmq@6.3.17
+  - eve@0.81.0
+
 # shortcut: 上游仍固定存在漏洞的传递依赖，上游发布修复后移除对应 override。
 overrides:
   "@hono/node-server@<1.19.15": ">=1.19.15"
